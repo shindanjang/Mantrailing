@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MT Log">
+<meta name="theme-color" content="#0C447C">
+<title>DK's Mantrailing Training Log</title>
+<style>
+:root {
+  --blue: #185FA5; --blue-dark: #0C447C; --blue-light: #E6F1FB;
+  --green: #1D9E75; --green-light: #EAF3DE;
+  --amber: #BA7517; --amber-light: #FAEEDA;
+  --red: #A32D2D; --red-light: #FCEBEB;
+  --bg: #F4F6FA; --surface: #fff; --border: #DEE3EC;
+  --text: #1a1a2e; --muted: #6B7280;
+  --r: 12px; --rs: 8px; --shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system,'Helvetica Neue',sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; }
+
+/* Header */
+.hdr { background: var(--blue-dark); color: #fff; padding: 48px 16px 12px; position: sticky; top: 0; z-index: 100; }
+.hdr-inner { display: flex; align-items: center; gap: 10px; }
+.hdr-icon { width: 32px; height: 32px; background: rgba(255,255,255,0.18); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hdr h1 { font-size: 14px; font-weight: 600; }
+.hdr p { font-size: 10px; opacity: 0.7; margin-top: 1px; }
+
+/* Bottom Nav */
+.bnav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
+.ni { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 4px 5px; font-size: 10px; color: var(--muted); cursor: pointer; gap: 3px; border: none; background: none; }
+.ni.active { color: var(--blue); }
+.ni svg { width: 22px; height: 22px; }
+
+/* Panels */
+.panel { display: none; padding: 12px 14px 0; }
+.panel.active { display: block; }
+
+/* Card */
+.card { background: var(--surface); border-radius: var(--r); padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow); }
+.ct { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+/* Metrics */
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.metric { background: var(--surface); border-radius: var(--rs); padding: 12px; box-shadow: var(--shadow); text-align: center; }
+.mv { font-size: 20px; font-weight: 700; color: var(--blue-dark); }
+.ml { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* Form elements */
+.flabel { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; margin-top: 12px; font-weight: 600; }
+.flabel:first-child { margin-top: 0; }
+input[type=text], input[type=number], input[type=date], input[type=url], select, textarea {
+  width: 100%; padding: 11px 12px; font-size: 15px;
+  border: 1.5px solid var(--border); border-radius: var(--rs);
+  background: var(--bg); color: var(--text);
+  font-family: inherit; -webkit-appearance: none; appearance: none;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--blue); background: #fff; }
+textarea { resize: vertical; min-height: 72px; }
+.irow { display: flex; align-items: center; gap: 8px; }
+.unit { font-size: 13px; color: var(--muted); white-space: nowrap; font-weight: 500; }
+
+/* ID badge */
+.id-badge { display: inline-block; background: var(--blue-light); color: var(--blue-dark); font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 999px; margin-top: 8px; }
+.id-badge.loading { background: var(--bg); color: var(--muted); }
+
+/* Toggle button groups */
+.btn-group { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 7px; }
+.bg-btn { padding: 8px 14px; font-size: 13px; font-weight: 500; border: 1.5px solid var(--border); border-radius: 999px; background: var(--bg); color: var(--muted); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.bg-btn.sel { background: var(--blue-light); border-color: var(--blue); color: var(--blue-dark); font-weight: 700; }
+.bg-btn.sel-green { background: var(--green-light); border-color: var(--green); color: #0F6E56; font-weight: 700; }
+.bg-btn.sel-red { background: var(--red-light); border-color: var(--red); color: var(--red); font-weight: 700; }
+
+/* Radio yes/no */
+.yn-group { display: flex; gap: 8px; margin-top: 7px; }
+.yn-btn { flex: 1; text-align: center; padding: 10px; background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--rs); font-size: 14px; cursor: pointer; transition: all 0.15s; font-weight: 500; }
+.yn-btn.yes { background: var(--green-light); border-color: var(--green); color: #0F6E56; font-weight: 700; }
+.yn-btn.no { background: var(--red-light); border-color: var(--red); color: var(--red); font-weight: 700; }
+
+/* Map */
+#map-canvas { width: 100%; height: 260px; border-radius: var(--rs); display: block; touch-action: none; border: 1.5px solid var(--border); }
+.map-tools { display: flex; gap: 5px; margin-bottom: 7px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+.map-tools::-webkit-scrollbar { display: none; }
+.tool-btn { padding: 6px 11px; font-size: 12px; border: 1.5px solid var(--border); border-radius: 999px; background: var(--bg); cursor: pointer; white-space: nowrap; color: var(--muted); font-weight: 500; flex-shrink: 0; }
+.tool-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* Video/file upload */
+.upload-box { border: 2px dashed var(--border); border-radius: var(--rs); padding: 20px 16px; text-align: center; color: var(--muted); font-size: 13px; position: relative; background: var(--bg); }
+.upload-box input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+/* Log list */
+.log-item { background: var(--surface); border-radius: var(--r); padding: 13px 14px; margin-bottom: 9px; box-shadow: var(--shadow); border-left: 4px solid var(--blue); cursor: pointer; }
+.log-item:active { opacity: 0.75; }
+.log-title { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+.log-sub { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.badges { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+.badge { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.b-blue { background: var(--blue-light); color: var(--blue-dark); }
+.b-green { background: var(--green-light); color: #0F6E56; }
+.b-amber { background: var(--amber-light); color: var(--amber); }
+.b-red { background: var(--red-light); color: var(--red); }
+
+/* Buttons */
+.btn-save { background: var(--blue); color: #fff; width: 100%; padding: 15px; font-size: 16px; border-radius: var(--r); margin-top: 8px; border: none; cursor: pointer; font-weight: 700; }
+.btn-save:active { background: var(--blue-dark); transform: scale(0.98); }
+.btn-pdf { background: var(--blue-dark); color: #fff; width: 100%; padding: 13px; border-radius: var(--rs); font-size: 15px; border: none; cursor: pointer; font-weight: 600; }
+
+/* Overlay */
+.overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 200; overflow-y: auto; }
+.overlay.open { display: block; }
+.ov-hdr { background: var(--blue-dark); color: #fff; padding: 48px 16px 12px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; }
+.ov-back { background: none; border: none; color: #fff; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.dr { display: flex; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.dl { color: var(--muted); width: 130px; flex-shrink: 0; font-size: 13px; }
+.dv { color: var(--text); font-weight: 500; }
+
+/* Empty */
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+.empty-icon { font-size: 40px; margin-bottom: 10px; }
+
+/* Toast */
+#toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #fff; padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; white-space: nowrap; }
+
+/* Grid */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.note { font-size: 11px; color: var(--muted); margin-top: 5px; font-style: italic; }
+
+/* Spinner */
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--blue-light); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-left: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="hdr">
+  <div class="hdr-inner">
+    <div class="hdr-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <div>
+      <h1>DK's Mantrailing Training Log</h1>
+      <p>인명구조견 훈련 기록 시스템</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="panel-dashboard" class="panel active">
+  <div class="metrics">
+    <div class="metric"><div class="mv" id="m-total">0</div><div class="ml">총 세션</div></div>
+    <div class="metric"><div class="mv" id="m-met">-</div><div class="ml">목표 달성률</div></div>
+    <div class="metric"><div class="mv" id="m-age">-</div><div class="ml">평균 Trail Age</div></div>
+    <div class="metric"><div class="mv" id="m-len">-</div><div class="ml">평균 거리</div></div>
+  </div>
+  <div class="card">
+    <div class="ct">최근 훈련 기록</div>
+    <div id="recent-list"><div class="empty"><div class="empty-icon">🐕</div><p>아직 기록이 없어요!</p></div></div>
+  </div>
+  <div class="card">
+    <div class="ct">PDF / 데이터 내보내기</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px">전체 훈련 기록을 PDF로 저장합니다</p>
+    <button class="btn-pdf" onclick="exportPDF()">전체 기록 PDF로 저장</button>
+  </div>
+</div>
+
+<!-- ===== NEW ENTRY ===== -->
+<div id="panel-new" class="panel">
+
+  <!-- 1. 기본 정보 -->
+  <div class="card">
+    <div class="ct">기본 정보</div>
+
+    <span class="flabel">견명 (개 이름) *</span>
+    <input id="f-k9" type="text" placeholder="예: 신디, 원더..." autocomplete="off" oninput="onK9Input()">
+    <div id="auto-id-wrap" style="margin-top:6px;min-height:28px">
+      <span class="id-badge loading" id="auto-id-badge">이름 입력 후 ID 자동 생성</span>
+    </div>
+
+    <span class="flabel">핸들러 / 훈련사</span>
+    <input id="f-handler" type="text" placeholder="">
+
+    <span class="flabel">훈련 유형 (Training Type)</span>
+    <div class="btn-group" id="type-group">
+      <button class="bg-btn" onclick="toggleSingle('type','unit',this)">Unit</button>
+      <button class="bg-btn" onclick="toggleSingle('type','indiv',this)">Individual</button>
+      <button class="bg-btn" onclick="toggleSingle('type','demo',this)">Demo</button>
+      <button class="bg-btn" onclick="toggleSingle('type','test',this)">Test</button>
+    </div>
+
+    <div class="g2" style="margin-top:12px">
+      <div><span class="flabel">날짜 *</span><input id="f-date" type="date"></div>
+      <div><span class="flabel">시간</span><input id="f-tod" type="time"></div>
+    </div>
+
+    <span class="flabel">Location (장소)</span>
+    <input id="f-location" type="text" placeholder="예: 서울 남산공원">
+  </div>
+
+  <!-- 2. 훈련 목표 -->
+  <div class="card">
+    <div class="ct">훈련 목표 (Training Objective)</div>
+    <textarea id="f-objective" placeholder="이번 세션의 훈련 목표를 입력하세요..."></textarea>
+  </div>
+
+  <!-- 3. 트레일 정보 -->
+  <div class="card">
+    <div class="ct">트레일 정보</div>
+
+    <span class="flabel">Age of Trail / Hide</span>
+    <div class="irow"><input id="f-age" type="number" min="0" placeholder="0"><span class="unit">min</span></div>
+
+    <span class="flabel">Length / Size of Trail / Area</span>
+    <div class="irow"><input id="f-length" type="number" min="0" placeholder="0"><span class="unit">m</span></div>
+
+    <span class="flabel"># Turns / Transitions</span>
+    <input id="f-turns" type="number" min="0" placeholder="0">
+
+    <span class="flabel">Scent Article (냄새 물품)</span>
+    <input id="f-scent" type="text" placeholder="예: 의류, 모자, 차량 핸들...">
+
+    <span class="flabel">Time on Trail / in Area</span>
+    <div class="irow"><input id="f-trailtime" type="number" min="0" placeholder="0"><span class="unit">sec</span></div>
+
+    <span class="flabel">Is It (블라인드 여부)</span>
+    <div class="btn-group" id="blind-group">
+      <button class="bg-btn" onclick="toggleSingle('blind','known',this)">Known</button>
+      <button class="bg-btn" onclick="toggleSingle('blind','blind',this)">Blind</button>
+      <button class="bg-btn" onclick="toggleSingle('blind','dbl',this)">Double Blind</button>
+    </div>
+
+    <span class="flabel">DoT confirmed?</span>
+    <div class="yn-group">
+      <div class="yn-btn" id="dot-yes" onclick="setYN('dot','yes')">Yes ✓</div>
+      <div class="yn-btn" id="dot-no" onclick="setYN('dot','no')">No ✗</div>
+    </div>
+    <div id="dot-note-wrap" style="display:none;margin-top:8px">
+      <input id="f-dot-note" type="text" placeholder="DoT 미확인 사유...">
+    </div>
+  </div>
+
+  <!-- 4. 날씨 & 환경 -->
+  <div class="card">
+    <div class="ct">날씨 & 환경</div>
+
+    <span class="flabel">Weather (날씨)</span>
+    <select id="f-weather">
+      <option value="">선택</option>
+      <option>맑음 Clear</option><option>흐림 Cloudy</option>
+      <option>비 Rain</option><option>안개 Fog</option><option>눈 Snow</option><option>바람 Windy</option>
+    </select>
+
+    <div class="g2">
+      <div><span class="flabel">Temperature</span>
+        <div class="irow"><input id="f-temp" type="number" placeholder="0"><span class="unit">°C</span></div>
+      </div>
+      <div><span class="flabel">Humidity (습도)</span>
+        <div class="irow"><input id="f-humidity" type="number" min="0" max="100" placeholder="0"><span class="unit">%</span></div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <div><span class="flabel">Wind Speed</span>
+        <div class="irow"><input id="f-wind" type="number" step="0.1" placeholder="0.0"><span class="unit">m/s</span></div>
+      </div>
+      <div><span class="flabel">Wind Direction</span>
+        <select id="f-winddir">
+          <option value="">선택</option>
+          <option>N</option><option>NE</option><option>E</option><option>SE</option>
+          <option>S</option><option>SW</option><option>W</option><option>NW</option>
+        </select>
+      </div>
+    </div>
+
+    <span class="flabel">Indoors?</span>
+    <div class="yn-group">
+      <div class="yn-btn" id="indoor-yes" onclick="setYN('indoor','yes')">실내 Indoor</div>
+      <div class="yn-btn" id="indoor-no" onclick="setYN('indoor','no')">실외 Outdoor</div>
+    </div>
+
+    <span class="flabel">Environment / Conditions</span>
+    <textarea id="f-env" placeholder="지형, 도심/산림, 특수 환경 조건..."></textarea>
+  </div>
+
+  <!-- 5. 트레일 지도 -->
+  <div class="card">
+    <div class="ct">트레일 지도 (Trail Map)</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+      <div style="position:relative;flex:1">
+        <input type="file" accept="image/*" id="map-bg-input" onchange="loadMapBg(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2">
+        <div id="map-bg-btn" style="padding:8px 12px;font-size:12px;border:1.5px dashed var(--border);border-radius:var(--rs);background:var(--bg);color:var(--muted);text-align:center;cursor:pointer">
+          🖼️ 지도 이미지를 배경으로 설정
+        </div>
+      </div>
+      <button class="tool-btn" onclick="removeMapBg()" id="map-bg-remove" style="display:none;color:var(--red);border-color:var(--red);flex-shrink:0">배경 제거</button>
+    </div>
+    <div class="map-tools">
+      <button class="tool-btn active" id="tool-path" onclick="setTool('path')">경로</button>
+      <button class="tool-btn" id="tool-start" onclick="setTool('start')">시작 S</button>
+      <button class="tool-btn" id="tool-end" onclick="setTool('end')">종료 E</button>
+      <button class="tool-btn" id="tool-turn" onclick="setTool('turn')">전환 T</button>
+      <button class="tool-btn" id="tool-marker" onclick="setTool('marker')">마커</button>
+      <button class="tool-btn" id="tool-erase" onclick="setTool('erase')">지우개</button>
+      <button class="tool-btn" onclick="clearMap()">경로 지우기</button>
+    </div>
+    <canvas id="map-canvas"></canvas>
+    <p class="note">배경 이미지 위에 손가락으로 경로를 그리세요</p>
+  </div>
+
+  <!-- 6. 유튜브 -->
+  <div class="card">
+    <div class="ct">유튜브</div>
+    <span class="flabel">유튜브 URL (상세 보기에서 바로 재생)</span>
+    <input id="f-youtube" type="url" placeholder="https://youtube.com/watch?v=...">
+  </div>
+
+  <!-- 7. 결과 -->
+  <div class="card">
+    <div class="ct">결과 (Outcome)</div>
+    <span class="flabel">Reward (보상)</span>
+    <input id="f-reward" type="text" placeholder="예: 장난감, 간식, 칭찬...">
+    <span class="flabel">Final Trained Response (FTR)</span>
+    <input id="f-ftr" type="text" placeholder="예: 앉기, 짖기, 눕기...">
+    <span class="flabel">Were objectives met? (목표 달성 여부)</span>
+    <div class="yn-group">
+      <div class="yn-btn" id="met-yes" onclick="setYN('met','yes')">Yes — 달성 ✓</div>
+      <div class="yn-btn" id="met-no" onclick="setYN('met','no')">No — 미달성 ✗</div>
+    </div>
+    <div id="met-note-wrap" style="display:none;margin-top:8px">
+      <input id="f-met-note" type="text" placeholder="미달성 사유...">
+    </div>
+  </div>
+
+  <!-- 8. Notes 맨 마지막 -->
+  <div class="card">
+    <div class="ct">훈련 리뷰 & 복기 메모 (Notes)</div>
+    <textarea id="f-notes" style="min-height:120px" placeholder="개의 행동, 관찰 사항, 개선점, 복기 내용..."></textarea>
+  </div>
+
+  <button class="btn-save" id="save-btn" onclick="saveEntry()">기록 저장하기</button>
+  <div style="height:16px"></div>
+</div>
+
+<!-- ===== HISTORY ===== -->
+<div id="panel-history" class="panel">
+  <div style="position:relative;margin-bottom:12px">
+    <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="search-q" type="text" placeholder="ID, 견명, 핸들러, 장소 검색..." style="padding-left:38px" oninput="renderHistory()">
+  </div>
+  <div id="history-list"><div class="empty"><div class="empty-icon">📋</div><p>기록이 없습니다.</p></div></div>
+</div>
+
+<!-- Detail Overlay -->
+<div id="detail-overlay" class="overlay">
+  <div class="ov-hdr">
+    <button class="ov-back" onclick="closeDetail()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>뒤로
+    </button>
+    <div>
+      <div id="detail-title" style="font-size:15px;font-weight:700"></div>
+      <div id="detail-sub" style="font-size:11px;opacity:0.75;margin-top:1px"></div>
+    </div>
+  </div>
+  <div style="padding:14px" id="detail-content"></div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bnav">
+  <button class="ni active" id="nav-dashboard" onclick="switchTab('dashboard')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>대시보드
+  </button>
+  <button class="ni" id="nav-new" onclick="switchTab('new')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>새 기록
+  </button>
+  <button class="ni" id="nav-history" onclick="switchTab('history')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>기록 목록
+  </button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ======== 설정: Google Apps Script URL ========
+// 아래 URL을 본인의 GAS 웹앱 URL로 교체하세요
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxqih-E5YVH5AWzy6eSHqHXn0RvGMP8i9638zk2xkk93z1SSecTmjvh3xNSZn7Uebvv/exec';
+
+// ======== 상태 ========
+let entries = [];
+try { entries = JSON.parse(localStorage.getItem('dk_mt_v3') || '[]'); } catch(e) {}
+
+let selState = { type: '', blind: '' };
+let ynState = { dot: '', met: '', indoor: '' };
+let mapTool = 'path';
+let isDrawing = false;
+let mapPaths = [], currentPath = [], mapPoints = [];
+let mapBgImage = null;
+let autoIdDebounce = null;
+
+// ======== CANVAS ========
+const canvas = document.getElementById('map-canvas');
+const ctx = canvas.getContext('2d');
+
+function initCanvas() {
+  const w = canvas.parentElement.clientWidth - 28;
+  canvas.width = w; canvas.height = 260;
+  redrawMap();
+}
+
+function redrawMap() {
+  if (mapBgImage) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(mapBgImage, 0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = '#dce8d8';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#c4d8be'; ctx.lineWidth = 0.5;
+    for (let x = 0; x < canvas.width; x += 40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+    for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+  }
+  mapPaths.forEach(p => {
+    if (p.length < 2) return;
+    if (mapBgImage) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 5;
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.beginPath(); ctx.moveTo(p[0].x, p[0].y); p.forEach(pt => ctx.lineTo(pt.x, pt.y)); ctx.stroke();
+    }
+    ctx.strokeStyle = mapBgImage ? '#FF3B30' : '#185FA5';
+    ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(p[0].x, p[0].y); p.forEach(pt => ctx.lineTo(pt.x, pt.y)); ctx.stroke();
+  });
+  mapPoints.forEach(pt => {
+    const cfg = {start:{c:'#1D9E75',l:'S'},end:{c:'#D85A30',l:'E'},turn:{c:'#BA7517',l:'T'},marker:{c:'#533AB7',l:'●'}}[pt.type]||{c:'#888',l:'?'};
+    ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.beginPath(); ctx.arc(pt.x,pt.y,13,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=cfg.c; ctx.beginPath(); ctx.arc(pt.x,pt.y,11,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 10px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(cfg.l,pt.x,pt.y);
+  });
+}
+
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return { x: (src.clientX-r.left)*(canvas.width/r.width), y: (src.clientY-r.top)*(canvas.height/r.height) };
+}
+
+canvas.addEventListener('touchstart', e => { e.preventDefault(); hDown(getPos(e)); }, {passive:false});
+canvas.addEventListener('touchmove', e => { e.preventDefault(); hMove(getPos(e)); }, {passive:false});
+canvas.addEventListener('touchend', () => { isDrawing=false; currentPath=[]; });
+canvas.addEventListener('mousedown', e => hDown(getPos(e)));
+canvas.addEventListener('mousemove', e => { if(isDrawing) hMove(getPos(e)); });
+canvas.addEventListener('mouseup', () => { isDrawing=false; currentPath=[]; });
+
+function hDown(pos) {
+  if (mapTool==='path') { isDrawing=true; currentPath=[pos]; mapPaths.push(currentPath); }
+  else if (['start','end','turn'].includes(mapTool)) { mapPoints=mapPoints.filter(p=>p.type!==mapTool); mapPoints.push({...pos,type:mapTool}); redrawMap(); }
+  else if (mapTool==='marker') { mapPoints.push({...pos,type:'marker'}); redrawMap(); }
+  else if (mapTool==='erase') { isDrawing=true; eraseNear(pos); }
+}
+function hMove(pos) {
+  if (!isDrawing) return;
+  if (mapTool==='path') { currentPath.push(pos); redrawMap(); }
+  else if (mapTool==='erase') eraseNear(pos);
+}
+function eraseNear(pos) {
+  const d=(a,b)=>Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2);
+  mapPaths=mapPaths.filter(p=>!p.some(pt=>d(pt,pos)<16));
+  mapPoints=mapPoints.filter(pt=>d(pt,pos)>16);
+  redrawMap();
+}
+function setTool(t) {
+  mapTool=t;
+  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+  const el=document.getElementById('tool-'+t); if(el) el.classList.add('active');
+}
+function clearMap() { mapPaths=[]; mapPoints=[]; redrawMap(); }
+
+function loadMapBg(input) {
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      mapBgImage=img;
+      document.getElementById('map-bg-btn').innerHTML='✓ '+file.name.substring(0,22);
+      document.getElementById('map-bg-btn').style.borderStyle='solid';
+      document.getElementById('map-bg-btn').style.borderColor='var(--green)';
+      document.getElementById('map-bg-btn').style.color='var(--green)';
+      document.getElementById('map-bg-remove').style.display='block';
+      redrawMap();
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function removeMapBg() {
+  mapBgImage=null;
+  document.getElementById('map-bg-input').value='';
+  document.getElementById('map-bg-btn').innerHTML='🖼️ 지도 이미지를 배경으로 설정';
+  document.getElementById('map-bg-btn').style.borderStyle='dashed';
+  document.getElementById('map-bg-btn').style.borderColor='var(--border)';
+  document.getElementById('map-bg-btn').style.color='var(--muted)';
+  document.getElementById('map-bg-remove').style.display='none';
+  redrawMap();
+}
+
+// ======== TOGGLE BUTTONS ========
+function toggleSingle(group, val, el) {
+  const prev = selState[group];
+  selState[group] = (prev === val) ? '' : val;
+  const grpEl = document.getElementById(group+'-group');
+  if (grpEl) grpEl.querySelectorAll('.bg-btn').forEach(b => b.classList.remove('sel'));
+  if (selState[group]) el.classList.add('sel');
+}
+
+function setYN(name, val) {
+  ynState[name] = val;
+  if (name==='dot') {
+    document.getElementById('dot-yes').className='yn-btn'+(val==='yes'?' yes':'');
+    document.getElementById('dot-no').className='yn-btn'+(val==='no'?' no':'');
+    document.getElementById('dot-note-wrap').style.display=val==='no'?'block':'none';
+  } else if (name==='met') {
+    document.getElementById('met-yes').className='yn-btn'+(val==='yes'?' yes':'');
+    document.getElementById('met-no').className='yn-btn'+(val==='no'?' no':'');
+    document.getElementById('met-note-wrap').style.display=val==='no'?'block':'none';
+  } else if (name==='indoor') {
+    document.getElementById('indoor-yes').className='yn-btn'+(val==='yes'?' yes':'');
+    document.getElementById('indoor-no').className='yn-btn'+(val==='no'?' yes':'');
+  }
+}
+
+// ======== AUTO ID ========
+function onK9Input() {
+  const name = document.getElementById('f-k9').value.trim();
+  const badge = document.getElementById('auto-id-badge');
+  if (!name) {
+    badge.className='id-badge loading';
+    badge.textContent='이름 입력 후 ID 자동 생성';
+    return;
+  }
+  badge.className='id-badge loading';
+  badge.innerHTML='계산 중<span class="spinner"></span>';
+  clearTimeout(autoIdDebounce);
+  autoIdDebounce = setTimeout(() => calcAutoId(name), 600);
+}
+
+function calcAutoId(name) {
+  const badge = document.getElementById('auto-id-badge');
+  // 로컬 entries에서 같은 견명 카운트
+  const count = entries.filter(e => e.k9 === name).length;
+  const num = String(count + 1).padStart(2, '0');
+  const id = '#' + name + num;
+  badge.className='id-badge';
+  badge.textContent = id;
+  // GAS에서도 조회 (URL이 설정된 경우)
+  if (GAS_URL) {
+    fetch(GAS_URL + '?action=countByK9&k9=' + encodeURIComponent(name))
+      .then(r => r.json())
+      .then(data => {
+        if (data.count !== undefined) {
+          const n2 = String(data.count + 1).padStart(2,'0');
+          badge.textContent = '#' + name + n2;
+        }
+      }).catch(()=>{});
+  }
+}
+
+function getCurrentAutoId() {
+  return document.getElementById('auto-id-badge').textContent || '';
+}
+
+// ======== SAVE ========
+function g(id) { return (document.getElementById(id)||{}).value||''; }
+
+async function saveEntry() {
+  const k9 = g('f-k9').trim();
+  const date = g('f-date');
+  if (!k9||!date) { showToast('견명과 날짜는 필수입니다'); return; }
+
+  const autoId = getCurrentAutoId();
+  const btn = document.getElementById('save-btn');
+  btn.textContent='저장 중...'; btn.disabled=true;
+
+  const mapImg = canvas.toDataURL('image/jpeg', 0.7);
+
+  const entry = {
+    id: Date.now(), autoId, k9, handler: g('f-handler'),
+    type: selState.type, date, tod: g('f-tod'), location: g('f-location'),
+    objective: g('f-objective'),
+    age: g('f-age'), length: g('f-length'), turns: g('f-turns'),
+    scent: g('f-scent'), trailtime: g('f-trailtime'),
+    blind: selState.blind, dot: ynState.dot, dotNote: g('f-dot-note'),
+    weather: g('f-weather'), temp: g('f-temp'), humidity: g('f-humidity'),
+    wind: g('f-wind'), winddir: g('f-winddir'),
+    indoor: ynState.indoor, env: g('f-env'),
+    youtube: g('f-youtube'),
+    notes: g('f-notes'), reward: g('f-reward'), ftr: g('f-ftr'),
+    met: ynState.met, metNote: g('f-met-note'),
+    mapImg
+  };
+
+  entries.unshift(entry);
+  try { localStorage.setItem('dk_mt_v3', JSON.stringify(entries)); } catch(e) {}
+
+  if (GAS_URL) {
+    try {
+      await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({action:'save', data: entry})
+      });
+    } catch(e) {}
+  }
+
+  resetForm();
+  btn.textContent='기록 저장하기'; btn.disabled=false;
+  switchTab('dashboard');
+  showToast('기록이 저장되었습니다! ✓');
+}
+
+function resetForm() {
+  ['f-k9','f-handler','f-location','f-objective','f-scent','f-env','f-notes','f-reward','f-ftr','f-dot-note','f-met-note','f-youtube']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-date','f-tod','f-weather','f-winddir'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-age','f-length','f-turns','f-trailtime','f-temp','f-humidity','f-wind'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  selState={type:'',blind:''};
+  document.querySelectorAll('.bg-btn').forEach(b=>b.classList.remove('sel'));
+  ynState={dot:'',met:'',indoor:''};
+  ['dot-yes','dot-no','met-yes','met-no','indoor-yes','indoor-no'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='yn-btn';});
+  ['dot-note-wrap','met-note-wrap'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  const badge=document.getElementById('auto-id-badge');
+  badge.className='id-badge loading'; badge.textContent='이름 입력 후 ID 자동 생성';
+  clearMap(); removeMapBg();
+}
+
+// ======== TABS ========
+function switchTab(t) {
+  ['dashboard','new','history'].forEach(id=>{
+    document.getElementById('panel-'+id).classList.toggle('active',id===t);
+    document.getElementById('nav-'+id).classList.toggle('active',id===t);
+  });
+  if(t==='dashboard') renderDashboard();
+  if(t==='history') renderHistory();
+  if(t==='new') { setTimeout(initCanvas,60); document.getElementById('f-date').valueAsDate=new Date(); }
+  window.scrollTo(0,0);
+}
+
+// ======== RENDER ========
+function renderDashboard() {
+  document.getElementById('m-total').textContent=entries.length;
+  const met=entries.filter(e=>e.met==='yes').length;
+  document.getElementById('m-met').textContent=entries.length?Math.round(met/entries.length*100)+'%':'-';
+  const ages=entries.filter(e=>e.age).map(e=>parseFloat(e.age));
+  document.getElementById('m-age').textContent=ages.length?Math.round(ages.reduce((a,b)=>a+b,0)/ages.length)+'m':'-';
+  const lens=entries.filter(e=>e.length).map(e=>parseFloat(e.length));
+  document.getElementById('m-len').textContent=lens.length?Math.round(lens.reduce((a,b)=>a+b,0)/lens.length)+'m':'-';
+  const el=document.getElementById('recent-list');
+  const recent=entries.slice(0,8);
+  el.innerHTML=recent.length?recent.map(logItemHTML).join(''):'<div class="empty"><div class="empty-icon">🐕</div><p>아직 기록이 없어요!</p></div>';
+}
+
+function renderHistory() {
+  const q=(g('search-q')).toLowerCase();
+  const filtered=entries.filter(e=>!q||(e.autoId+e.k9+e.handler+e.location).toLowerCase().includes(q));
+  const el=document.getElementById('history-list');
+  el.innerHTML=filtered.length?filtered.map(logItemHTML).join(''):'<div class="empty"><div class="empty-icon">🔍</div><p>검색 결과가 없습니다.</p></div>';
+}
+
+const typeLabel={unit:'Unit',indiv:'Individual',demo:'Demo',test:'Test'};
+const blindLabel={known:'Known',blind:'Blind',dbl:'Double Blind'};
+
+function logItemHTML(e) {
+  const metB=e.met==='yes'?'<span class="badge b-green">달성 ✓</span>':e.met==='no'?'<span class="badge b-red">미달성</span>':'';
+  const typeB=e.type?`<span class="badge b-blue">${typeLabel[e.type]||e.type}</span>`:'';
+  return `<div class="log-item" onclick="showDetail(${e.id})">
+    <div class="log-title">${e.autoId||e.k9||'미입력'}</div>
+    <div class="log-sub">${e.date||'-'} · ${e.location||'-'}<br>${e.k9||''} · ${e.handler||''} · ${e.age||'?'}min · ${e.length||'?'}m</div>
+    <div class="badges">${typeB}${metB}</div>
+  </div>`;
+}
+
+// ======== DETAIL ========
+function showDetail(id) {
+  const e=entries.find(x=>x.id===id); if(!e) return;
+  document.getElementById('detail-title').textContent=e.autoId||e.k9||'-';
+  document.getElementById('detail-sub').textContent=`${e.date||'-'} · ${e.location||'-'}`;
+  const yn=v=>v==='yes'?'Yes ✓':v==='no'?'No ✗':'-';
+
+  // 유튜브 iframe 처리
+  let ytHtml='';
+  if(e.youtube){
+    const ytId=getYoutubeId(e.youtube);
+    if(ytId){
+      ytHtml=`<div class="card"><div class="ct">유튜브</div>
+        <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--rs)">
+          <iframe src="https://www.youtube.com/embed/${ytId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;border-radius:var(--rs)" allowfullscreen></iframe>
+        </div></div>`;
+    } else {
+      ytHtml=`<div class="card"><div class="ct">유튜브</div><a href="${e.youtube}" target="_blank" style="color:var(--blue)">${e.youtube}</a></div>`;
+    }
+  }
+
+  document.getElementById('detail-content').innerHTML=`
+    <div class="card">
+      <div class="ct">기본 정보</div>
+      ${row('Auto ID',e.autoId||'-')} ${row('견명',e.k9||'-')} ${row('핸들러',e.handler||'-')}
+      ${row('훈련 유형',typeLabel[e.type]||'-')} ${row('날짜',e.date||'-')}
+      ${row('시간대',e.tod||'-')} ${row('장소',e.location||'-')}
+    </div>
+    ${e.objective?`<div class="card"><div class="ct">훈련 목표</div><p style="font-size:14px;line-height:1.7">${e.objective}</p></div>`:''}
+    <div class="card">
+      <div class="ct">트레일 정보</div>
+      ${row('Age of Trail',e.age?e.age+' min':'-')} ${row('Length/Size',e.length?e.length+' m':'-')}
+      ${row('# Turns',e.turns||'-')} ${row('Scent Article',e.scent||'-')}
+      ${row('Time on Trail',e.trailtime?e.trailtime+' sec':'-')}
+      ${row('Is It',blindLabel[e.blind]||'-')} ${row('DoT',yn(e.dot)+(e.dotNote?' — '+e.dotNote:''))}
+    </div>
+    <div class="card">
+      <div class="ct">날씨 & 환경</div>
+      ${row('날씨',e.weather||'-')} ${row('온도',e.temp?e.temp+'°C':'-')}
+      ${row('습도',e.humidity?e.humidity+'%':'-')} ${row('Wind',e.wind?e.wind+' m/s '+(e.winddir||''):'-')}
+      ${row('Indoors',e.indoor==='yes'?'실내':'실외')} ${e.env?row('환경 조건',e.env):''}
+    </div>
+    <div class="card">
+      <div class="ct">메모 & 결과</div>
+      ${e.notes?row('Notes',e.notes):''} ${row('Reward',e.reward||'-')} ${row('FTR',e.ftr||'-')}
+      ${row('목표 달성',yn(e.met)+(e.metNote?' — '+e.metNote:''))}
+    </div>
+    ${e.mapImg?`<div class="card"><div class="ct">트레일 지도</div><img src="${e.mapImg}" style="width:100%;border-radius:var(--rs)"></div>`:''}
+    ${ytHtml}
+    <button class="btn-pdf" onclick="exportSinglePDF(${e.id})" style="margin-bottom:16px">이 기록 PDF로 저장</button>
+    <div style="height:16px"></div>
+  `;
+  document.getElementById('detail-overlay').classList.add('open');
+  document.getElementById('detail-overlay').scrollTop=0;
+}
+
+function row(label,val) {
+  return `<div class="dr"><span class="dl">${label}</span><span class="dv">${val}</span></div>`;
+}
+
+function closeDetail() { document.getElementById('detail-overlay').classList.remove('open'); }
+
+function getYoutubeId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+// ======== PDF ========
+function exportSinglePDF(id) {
+  const e=entries.find(x=>x.id===id); if(!e) return;
+  const yn=v=>v==='yes'?'Yes ✓':v==='no'?'No ✗':'-';
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+  <title>MT Log - ${e.autoId||e.k9}</title>
+  <style>body{font-family:Arial,sans-serif;padding:2rem;max-width:700px;margin:0 auto;font-size:13px;color:#222}
+  h1{font-size:18px;font-weight:700;margin-bottom:3px}h2{font-size:12px;color:#666;margin-bottom:18px}
+  .sec{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 5px;border-top:1px solid #eee;padding-top:10px}
+  table{width:100%;border-collapse:collapse}td{padding:5px 8px;border:0.5px solid #ddd}td:first-child{color:#666;width:150px;background:#fafafa}
+  .btn{background:#185FA5;color:#fff;border:none;padding:7px 16px;border-radius:5px;cursor:pointer;font-size:13px;margin-bottom:14px}
+  img{width:100%;border-radius:6px;margin-top:6px}@media print{.btn{display:none}}
+  </style></head><body>
+  <button class="btn" onclick="window.print()">인쇄 / PDF 저장</button>
+  <h1>DK's Mantrailing Training Log</h1>
+  <h2>${e.autoId||'-'} · ${e.date||'-'} · ${e.k9||'-'} · ${e.handler||'-'}</h2>
+  <div class="sec">기본 정보</div>
+  <table><tr><td>Auto ID</td><td>${e.autoId||'-'}</td></tr>
+  <tr><td>견명</td><td>${e.k9||'-'}</td></tr><tr><td>핸들러</td><td>${e.handler||'-'}</td></tr>
+  <tr><td>훈련 유형</td><td>${typeLabel[e.type]||'-'}</td></tr>
+  <tr><td>날짜</td><td>${e.date||'-'}</td></tr><tr><td>장소</td><td>${e.location||'-'}</td></tr></table>
+  ${e.objective?`<div class="sec">훈련 목표</div><p style="padding:8px;border:0.5px solid #ddd;line-height:1.6">${e.objective}</p>`:''}
+  <div class="sec">트레일 정보</div>
+  <table><tr><td>Age of Trail</td><td>${e.age||'-'} min</td></tr>
+  <tr><td>Length/Size</td><td>${e.length||'-'} m</td></tr>
+  <tr><td># Turns</td><td>${e.turns||'-'}</td></tr>
+  <tr><td>Scent Article</td><td>${e.scent||'-'}</td></tr>
+  <tr><td>Time on Trail</td><td>${e.trailtime||'-'} sec</td></tr>
+  <tr><td>Is It</td><td>${blindLabel[e.blind]||'-'}</td></tr>
+  <tr><td>DoT</td><td>${yn(e.dot)}${e.dotNote?' — '+e.dotNote:''}</td></tr></table>
+  <div class="sec">날씨 & 환경</div>
+  <table><tr><td>날씨</td><td>${e.weather||'-'}</td></tr>
+  <tr><td>온도</td><td>${e.temp?e.temp+'°C':'-'}</td></tr>
+  <tr><td>습도</td><td>${e.humidity?e.humidity+'%':'-'}</td></tr>
+  <tr><td>Wind</td><td>${e.wind||'-'} m/s ${e.winddir||''}</td></tr>
+  ${e.env?`<tr><td>환경 조건</td><td>${e.env}</td></tr>`:''}</table>
+  <div class="sec">메모 & 결과</div>
+  <table>${e.notes?`<tr><td>Notes</td><td style="line-height:1.6">${e.notes}</td></tr>`:''}
+  <tr><td>Reward</td><td>${e.reward||'-'}</td></tr>
+  <tr><td>FTR</td><td>${e.ftr||'-'}</td></tr>
+  <tr><td>목표 달성</td><td>${yn(e.met)}${e.metNote?' — '+e.metNote:''}</td></tr></table>
+  ${e.mapImg?`<div class="sec">트레일 지도</div><img src="${e.mapImg}">`:''}
+  </body></html>`);
+  win.document.close();
+}
+
+function exportPDF() {
+  if(!entries.length){showToast('저장된 기록이 없습니다');return;}
+  const yn=v=>v==='yes'?'Yes':v==='no'?'No':'-';
+  const rows=entries.map(e=>`<tr>
+    <td>${e.autoId||'-'}</td><td>${e.date||'-'}</td><td>${e.k9||'-'}</td><td>${e.handler||'-'}</td>
+    <td>${typeLabel[e.type]||'-'}</td><td>${e.location||'-'}</td>
+    <td>${e.age||'-'}min</td><td>${e.length||'-'}m</td>
+    <td>${e.weather||'-'}</td><td>${e.humidity?e.humidity+'%':'-'}</td>
+    <td>${yn(e.dot)}</td><td>${yn(e.met)}</td>
+    <td style="font-size:11px">${e.notes||'-'}</td></tr>`).join('');
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>MT Log 전체</title>
+  <style>body{font-family:Arial,sans-serif;padding:1.5rem;font-size:11px;color:#222}
+  h1{font-size:16px;margin-bottom:2px}h2{font-size:11px;color:#666;margin-bottom:12px}
+  .btn{background:#185FA5;color:#fff;border:none;padding:7px 14px;border-radius:5px;cursor:pointer;font-size:12px;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse}th{background:#185FA5;color:#fff;padding:6px 8px;font-size:11px;text-align:left}
+  td{padding:5px 7px;border-bottom:0.5px solid #ddd}tr:nth-child(even){background:#f8f8f8}
+  @media print{.btn{display:none}}</style></head><body>
+  <button class="btn" onclick="window.print()">인쇄 / PDF 저장</button>
+  <h1>DK's Mantrailing Training Log</h1>
+  <h2>총 ${entries.length}개 세션 · ${new Date().toLocaleDateString('ko-KR')}</h2>
+  <table><thead><tr><th>ID</th><th>날짜</th><th>견명</th><th>핸들러</th><th>유형</th><th>장소</th>
+  <th>Age</th><th>Length</th><th>날씨</th><th>습도</th><th>DoT</th><th>달성</th><th>메모</th></tr></thead>
+  <tbody>${rows}</tbody></table></body></html>`);
+  win.document.close();
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.opacity='1';
+  setTimeout(()=>t.style.opacity='0',2500);
+}
+
+// Init
+document.getElementById('f-date').valueAsDate=new Date();
+renderDashboard();
+setTimeout(initCanvas,100);
+</script>
+
+<!-- ================================================
+  📋 GOOGLE APPS SCRIPT 서버 코드
+  아래 코드를 Google Apps Script에 붙여넣으세요
+  =================================================
+
+function doPost(e) {
+  const data = JSON.parse(e.postData.contents);
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('훈련일지');
+
+  if (data.action === 'save') {
+    const d = data.data;
+    sheet.appendRow([
+      d.autoId, d.k9, d.handler, d.type, d.date, d.tod, d.location,
+      d.objective, d.age, d.length, d.turns, d.scent, d.trailtime,
+      d.blind, d.dot, d.dotNote, d.weather, d.temp, d.humidity,
+      d.wind, d.winddir, d.indoor, d.env,
+      d.youtube, d.notes, d.reward, d.ftr, d.met, d.metNote,
+      d.mapImg, new Date()
+    ]);
+    return ContentService.createTextOutput(JSON.stringify({ok:true}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  return ContentService.createTextOutput('{}');
+}
+
+function doGet(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('훈련일지');
+  if (e.parameter.action === 'countByK9') {
+    const k9 = e.parameter.k9;
+    const data = sheet.getDataRange().getValues();
+    const count = data.slice(1).filter(row => row[1] === k9).length;
+    return ContentService.createTextOutput(JSON.stringify({count}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  return ContentService.createTextOutput('{}');
+}
+
+================================================ -->
+</body>
+</html>
