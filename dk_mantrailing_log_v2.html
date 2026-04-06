@@ -1,0 +1,2338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MT Log">
+<meta name="theme-color" content="#0C447C">
+<title>Mantrailing Training Log</title>
+<style>
+:root {
+  --blue: #185FA5; --blue-dark: #0C447C; --blue-light: #E6F1FB;
+  --green: #1D9E75; --green-light: #EAF3DE;
+  --amber: #BA7517; --amber-light: #FAEEDA;
+  --red: #A32D2D; --red-light: #FCEBEB;
+  --bg: #F4F6FA; --surface: #fff; --border: #DEE3EC;
+  --text: #1a1a2e; --muted: #6B7280;
+  --r: 12px; --rs: 8px; --shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system,'Helvetica Neue',sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; }
+
+/* Header */
+.hdr { background: var(--blue-dark); color: #fff; padding: 48px 16px 12px; position: sticky; top: 0; z-index: 100; }
+.hdr-inner { display: flex; align-items: center; gap: 10px; }
+.hdr-icon { width: 32px; height: 32px; background: rgba(255,255,255,0.18); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hdr h1 { font-size: 14px; font-weight: 600; }
+.hdr p { font-size: 10px; opacity: 0.7; margin-top: 1px; }
+
+/* Bottom Nav */
+.bnav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
+.ni { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 4px 5px; font-size: 10px; color: var(--muted); cursor: pointer; gap: 3px; border: none; background: none; }
+.ni.active { color: var(--blue); }
+.ni svg { width: 22px; height: 22px; }
+
+/* Panels */
+.panel { display: none; padding: 12px 14px 0; }
+.panel.active { display: block; }
+
+/* Card */
+.card { background: var(--surface); border-radius: var(--r); padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow); }
+.ct { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+/* Metrics */
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.metric { background: var(--surface); border-radius: var(--rs); padding: 12px; box-shadow: var(--shadow); text-align: center; }
+.mv { font-size: 20px; font-weight: 700; color: var(--blue-dark); }
+.ml { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* Form elements */
+.flabel { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; margin-top: 12px; font-weight: 600; }
+.flabel:first-child { margin-top: 0; }
+input[type=text], input[type=number], input[type=date], input[type=url], select, textarea {
+  width: 100%; padding: 11px 12px; font-size: 15px;
+  border: 1.5px solid var(--border); border-radius: var(--rs);
+  background: var(--bg); color: var(--text);
+  font-family: inherit; -webkit-appearance: none; appearance: none;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--blue); background: #fff; }
+textarea { resize: vertical; min-height: 72px; }
+.irow { display: flex; align-items: center; gap: 8px; }
+.unit { font-size: 13px; color: var(--muted); white-space: nowrap; font-weight: 500; }
+
+/* ID badge */
+.id-badge { display: inline-block; background: var(--blue-light); color: var(--blue-dark); font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 999px; margin-top: 8px; }
+.id-badge.loading { background: var(--bg); color: var(--muted); }
+
+/* Toggle button groups */
+.btn-group { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 7px; }
+.bg-btn { padding: 8px 14px; font-size: 13px; font-weight: 500; border: 1.5px solid var(--border); border-radius: 999px; background: var(--bg); color: var(--muted); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.bg-btn.sel { background: var(--blue-light); border-color: var(--blue); color: var(--blue-dark); font-weight: 700; }
+.bg-btn.sel-green { background: var(--green-light); border-color: var(--green); color: #0F6E56; font-weight: 700; }
+.bg-btn.sel-red { background: var(--red-light); border-color: var(--red); color: var(--red); font-weight: 700; }
+
+/* Radio yes/no */
+.yn-group { display: flex; gap: 8px; margin-top: 7px; }
+.yn-btn { flex: 1; text-align: center; padding: 10px; background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--rs); font-size: 14px; cursor: pointer; transition: all 0.15s; font-weight: 500; }
+.yn-btn.yes { background: var(--green-light); border-color: var(--green); color: #0F6E56; font-weight: 700; }
+.yn-btn.no { background: var(--red-light); border-color: var(--red); color: var(--red); font-weight: 700; }
+
+/* Map */
+#map-canvas { display: block; touch-action: none; border-radius: var(--rs); border: 1.5px solid var(--border); flex-shrink: 0; }
+  .map-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; border-radius: var(--rs); max-height: 452px; }
+.map-tools { display: flex; gap: 5px; margin-bottom: 7px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+.map-tools::-webkit-scrollbar { display: none; }
+.tool-btn { padding: 6px 11px; font-size: 12px; border: 1.5px solid var(--border); border-radius: 999px; background: var(--bg); cursor: pointer; white-space: nowrap; color: var(--muted); font-weight: 500; flex-shrink: 0; }
+.tool-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.color-btn { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2.5px solid transparent; flex-shrink: 0; transition: transform 0.1s; }
+.color-btn:active { transform: scale(0.9); }
+.color-btn.active-color { border-color: var(--text) !important; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text); }
+
+/* Video/file upload */
+.upload-box { border: 2px dashed var(--border); border-radius: var(--rs); padding: 20px 16px; text-align: center; color: var(--muted); font-size: 13px; position: relative; background: var(--bg); }
+.upload-box input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+/* Log list */
+.log-item { background: var(--surface); border-radius: var(--r); padding: 13px 14px; margin-bottom: 9px; box-shadow: var(--shadow); border-left: 4px solid var(--blue); cursor: pointer; }
+.log-item:active { opacity: 0.75; }
+.log-title { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+.log-sub { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.badges { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+.badge { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.b-blue { background: var(--blue-light); color: var(--blue-dark); }
+.b-green { background: var(--green-light); color: #0F6E56; }
+.b-amber { background: var(--amber-light); color: var(--amber); }
+.b-red { background: var(--red-light); color: var(--red); }
+
+/* Buttons */
+.btn-save { background: var(--blue); color: #fff; width: 100%; padding: 15px; font-size: 16px; border-radius: var(--r); margin-top: 8px; border: none; cursor: pointer; font-weight: 700; }
+.btn-save:active { background: var(--blue-dark); transform: scale(0.98); }
+.btn-pdf { background: var(--blue-dark); color: #fff; width: 100%; padding: 13px; border-radius: var(--rs); font-size: 15px; border: none; cursor: pointer; font-weight: 600; }
+
+/* Overlay */
+.overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 200; overflow-y: auto; }
+.overlay.open { display: block; }
+.ov-hdr { background: var(--blue-dark); color: #fff; padding: 48px 16px 12px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; }
+.ov-back { background: none; border: none; color: #fff; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.dr { display: flex; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.dl { color: var(--muted); width: 130px; flex-shrink: 0; font-size: 13px; }
+.dv { color: var(--text); font-weight: 500; }
+
+/* Empty */
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+.empty-icon { font-size: 40px; margin-bottom: 10px; }
+
+/* Toast */
+#toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #fff; padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; white-space: nowrap; }
+
+/* Grid */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.note { font-size: 11px; color: var(--muted); margin-top: 5px; font-style: italic; }
+
+/* Spinner */
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--blue-light); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-left: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="hdr">
+  <div class="hdr-inner">
+    <div class="hdr-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <div>
+      <h1>Mantrailing Training Log</h1>
+      <p id="hdr-user-name">인명구조견 훈련 기록 시스템</p>
+    </div>
+    <div style="display:flex;gap:6px;margin-left:auto">
+      <button onclick="openHelp()" style="background:rgba(255,255,255,0.18);border:none;color:#fff;padding:6px 10px;border-radius:var(--rs);font-size:12px;cursor:pointer;flex-shrink:0">❓</button>
+      <button onclick="openSetup()" style="background:rgba(255,255,255,0.18);border:none;color:#fff;padding:6px 10px;border-radius:var(--rs);font-size:12px;cursor:pointer;flex-shrink:0">⚙️</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="panel-dashboard" class="panel active">
+  <div class="metrics">
+    <div class="metric"><div class="mv" id="m-total">0</div><div class="ml">총 세션</div></div>
+    <div class="metric"><div class="mv" id="m-met">-</div><div class="ml">목표 달성률</div></div>
+    <div class="metric"><div class="mv" id="m-age">-</div><div class="ml">평균 Trail Age</div></div>
+    <div class="metric"><div class="mv" id="m-len">-</div><div class="ml">평균 거리</div></div>
+  </div>
+  <div class="card">
+    <div class="ct">최근 훈련 기록</div>
+    <div id="recent-list"><div class="empty"><div class="empty-icon">
+      <svg width="80" height="80" viewBox="-20 -30 56 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- 뒷다리 -->
+        <path d="M-5 6 C-7 10 -8 14 -7 18" stroke="#555" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M5 6 C7 10 8 14 7 18" stroke="#555" stroke-width="2.5" stroke-linecap="round"/>
+        <ellipse cx="-7" cy="18" rx="3" ry="2" transform="rotate(10 -7 18)" fill="#f5f0e8" stroke="#555" stroke-width="0.8"/>
+        <ellipse cx="7" cy="18" rx="3" ry="2" transform="rotate(-10 7 18)" fill="#f5f0e8" stroke="#555" stroke-width="0.8"/>
+        <!-- 몸통 -->
+        <ellipse cx="0" cy="5" rx="11" ry="8" fill="#f5f0e8" stroke="#555" stroke-width="1"/>
+        <ellipse cx="3" cy="3" rx="7" ry="5" transform="rotate(10 3 3)" fill="#8B5E3C"/>
+        <!-- 앞다리 -->
+        <line x1="-6" y1="9" x2="-7" y2="18" stroke="#555" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="6" y1="9" x2="7" y2="18" stroke="#555" stroke-width="2.5" stroke-linecap="round"/>
+        <ellipse cx="-7" cy="18" rx="3" ry="2" fill="#f5f0e8" stroke="#555" stroke-width="0.8"/>
+        <ellipse cx="7" cy="18" rx="3" ry="2" fill="#f5f0e8" stroke="#555" stroke-width="0.8"/>
+        <!-- 꼬리 -->
+        <path d="M10 2 Q16 -4 13 -10" stroke="#8B5E3C" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <!-- 하네스 -->
+        <line x1="-9" y1="2" x2="9" y2="2" stroke="#FF6B00" stroke-width="2" stroke-linecap="round"/>
+        <line x1="0" y1="-2" x2="0" y2="7" stroke="#FF6B00" stroke-width="2" stroke-linecap="round"/>
+        <path d="M-8 2 Q0 -6 8 2" stroke="#FF6B00" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <!-- 목 -->
+        <ellipse cx="0" cy="-5" rx="5" ry="4" fill="#f5f0e8" stroke="#555" stroke-width="0.8"/>
+        <!-- 머리 -->
+        <ellipse cx="0" cy="-13" rx="9" ry="8" fill="#f5f0e8" stroke="#555" stroke-width="1"/>
+        <ellipse cx="-4" cy="-14" rx="4" ry="5" transform="rotate(-10 -4 -14)" fill="#8B5E3C"/>
+        <!-- 귀 -->
+        <path d="M-7 -17 Q-12 -14 -10 -8 Q-7 -10 -6 -14 Z" fill="#8B5E3C" stroke="#555" stroke-width="0.7"/>
+        <path d="M7 -17 Q12 -14 10 -8 Q7 -10 6 -14 Z" fill="#f5f0e8" stroke="#555" stroke-width="0.7"/>
+        <!-- 주둥이 -->
+        <ellipse cx="2" cy="-10" rx="5" ry="4" transform="rotate(5 2 -10)" fill="#f5f0e8" stroke="#555" stroke-width="0.8"/>
+        <!-- 코 -->
+        <ellipse cx="3" cy="-11" rx="3" ry="2.5" fill="#222"/>
+        <circle cx="2" cy="-12" r="0.8" fill="rgba(255,255,255,0.4)"/>
+        <!-- 눈 -->
+        <circle cx="-3" cy="-15" r="2.5" fill="#222"/>
+        <circle cx="5" cy="-15" r="2.5" fill="#222"/>
+        <circle cx="-2" cy="-16" r="0.9" fill="white"/>
+        <circle cx="6" cy="-16" r="0.9" fill="white"/>
+        <!-- 입 -->
+        <path d="M0 -8 Q2 -6 4 -8" stroke="#555" stroke-width="0.8" fill="none"/>
+      </svg>
+    </div><p>아직 기록이 없어요!</p></div></div>
+  </div>
+  <div class="card">
+    <div class="ct">내보내기</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-pdf" style="flex:1" onclick="exportPDF()">📄 전체 기록 PDF</button>
+      <button onclick="exportCSV()" style="flex:1;padding:13px;background:var(--green-light);color:#0F6E56;border:1.5px solid var(--green);border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer">📊 CSV 내보내기</button>
+    </div>
+    <div style="text-align:center;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)">
+      Made by <strong style="color:var(--blue-dark)">DK Shin</strong> · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d2a1babbbcb6b3bcb8b3bcb592bcb3a4b7a0fcb1bdbf">[email&#160;protected]</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== NEW ENTRY ===== -->
+<div id="panel-new" class="panel">
+
+  <!-- 1. 공통 기본 정보 (1회만 입력) -->
+  <div class="card">
+    <div class="ct">기본 정보 <span style="font-weight:400;font-size:10px;color:var(--muted)">(출동 공통 — 1회 입력)</span></div>
+
+    <span class="flabel">견명 (개 이름) *</span>
+    <input id="f-k9" type="text" placeholder="예: 신디, 원더..." autocomplete="off" oninput="onK9Input()">
+    <div id="auto-id-wrap" style="margin-top:6px;min-height:28px">
+      <span class="id-badge loading" id="auto-id-badge">이름 입력 후 ID 자동 생성</span>
+    </div>
+
+    <span class="flabel">핸들러 / 훈련사</span>
+    <input id="f-handler" type="text" placeholder="">
+
+    <span class="flabel">훈련 유형 (Training Type)</span>
+    <div class="btn-group" id="type-group">
+      <button class="bg-btn" onclick="toggleSingle('type','unit',this)">Team</button>
+      <button class="bg-btn" onclick="toggleSingle('type','indiv',this)">Individual</button>
+      <button class="bg-btn" onclick="toggleSingle('type','demo',this)">Demo</button>
+      <button class="bg-btn" onclick="toggleSingle('type','test',this)">Test</button>
+    </div>
+
+    <div class="g2" style="margin-top:12px">
+      <div><span class="flabel">날짜 *</span><input id="f-date" type="date"></div>
+      <div><span class="flabel">시간</span><input id="f-tod" type="time"></div>
+    </div>
+
+    <span class="flabel">Location (훈련 장소명)</span>
+    <input id="f-location" type="text" placeholder="예: 광교호수공원, 남산공원">
+
+    <span class="flabel">상세 주소 <span style="font-weight:400;color:var(--muted)">(날씨 자동 조회용)</span></span>
+    <input id="f-address" type="text" placeholder="예: 경기도 수원시 팔달구 매교동">
+
+    <span class="flabel" style="margin-top:12px">훈련 목표 (Training Objective)</span>
+    <textarea id="f-objective" placeholder="이번 출동의 훈련 목표를 입력하세요..."></textarea>
+  </div>
+
+  <!-- 회차 선택 -->
+  <div class="card" style="padding:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <span style="font-size:13px;font-weight:600;color:var(--text)">회차 선택</span>
+      <div style="display:flex;gap:6px">
+        <button onclick="removeSession()" style="padding:4px 10px;font-size:12px;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg);cursor:pointer;color:var(--muted)">− 회차 삭제</button>
+        <button onclick="addSession()" style="padding:4px 10px;font-size:12px;border:1px solid var(--blue);border-radius:var(--rs);background:var(--blue-light);cursor:pointer;color:var(--blue-dark);font-weight:600">+ 회차 추가</button>
+      </div>
+    </div>
+    <div id="session-tabs" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+  </div>
+
+  <!-- 회차별 입력 영역 -->
+  <div id="session-forms"></div>
+
+  <button class="btn-save" id="save-btn" onclick="saveEntry()">기록 저장하기</button>
+  <div style="height:16px"></div>
+</div>
+
+<!-- ===== HISTORY ===== -->
+<div id="panel-history" class="panel">
+  <div style="position:relative;margin-bottom:12px">
+    <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="search-q" type="text" placeholder="ID, 견명, 핸들러, 장소 검색..." style="padding-left:38px" oninput="renderHistory()">
+  </div>
+  <div id="history-list"><div class="empty"><div class="empty-icon">📋</div><p>기록이 없습니다.</p></div></div>
+</div>
+
+<!-- Detail Overlay -->
+<div id="detail-overlay" class="overlay">
+  <div class="ov-hdr">
+    <button class="ov-back" onclick="closeDetail()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>뒤로
+    </button>
+    <div>
+      <div id="detail-title" style="font-size:15px;font-weight:700"></div>
+      <div id="detail-sub" style="font-size:11px;opacity:0.75;margin-top:1px"></div>
+    </div>
+  </div>
+  <div style="padding:14px" id="detail-content"></div>
+</div>
+
+<!-- 개인 설정 오버레이 -->
+<div id="setup-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:300;overflow-y:auto">
+  <div style="max-width:500px;margin:0 auto;padding:40px 20px 60px">
+    <div style="text-align:center;margin-bottom:24px">
+      <svg width="56" height="56" viewBox="-20 -30 56 60" fill="none" style="margin-bottom:12px"><path d="M-5 6 C-7 10 -8 14 -7 18" stroke="#555" stroke-width="2.5" stroke-linecap="round"/><path d="M5 6 C7 10 8 14 7 18" stroke="#555" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="0" cy="5" rx="11" ry="8" fill="#f5f0e8" stroke="#555" stroke-width="1"/><ellipse cx="3" cy="3" rx="7" ry="5" transform="rotate(10 3 3)" fill="#8B5E3C"/><line x1="-9" y1="2" x2="9" y2="2" stroke="#FF6B00" stroke-width="2" stroke-linecap="round"/><line x1="0" y1="-2" x2="0" y2="7" stroke="#FF6B00" stroke-width="2" stroke-linecap="round"/><path d="M-8 2 Q0 -6 8 2" stroke="#FF6B00" stroke-width="1.8" fill="none" stroke-linecap="round"/><ellipse cx="0" cy="-13" rx="9" ry="8" fill="#f5f0e8" stroke="#555" stroke-width="1"/><ellipse cx="-4" cy="-14" rx="4" ry="5" transform="rotate(-10 -4 -14)" fill="#8B5E3C"/><path d="M-7 -17 Q-12 -14 -10 -8 Q-7 -10 -6 -14 Z" fill="#8B5E3C" stroke="#555" stroke-width="0.7"/><path d="M7 -17 Q12 -14 10 -8 Q7 -10 6 -14 Z" fill="#f5f0e8" stroke="#555" stroke-width="0.7"/><ellipse cx="2" cy="-10" rx="5" ry="4" transform="rotate(5 2 -10)" fill="#f5f0e8" stroke="#555" stroke-width="0.8"/><ellipse cx="3" cy="-11" rx="3" ry="2.5" fill="#222"/><circle cx="-3" cy="-15" r="2.5" fill="#222"/><circle cx="5" cy="-15" r="2.5" fill="#222"/></svg>
+      <div style="font-size:22px;font-weight:700;color:var(--blue-dark)">Mantrailing Training Log</div>
+      <div id="setup-subtitle" style="font-size:13px;color:var(--muted);margin-top:6px">처음 사용하시나요? 개인 설정을 완료해 주세요</div>
+    </div>
+
+    <!-- 언어 선택 -->
+    <div style="background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px">🌐 Language / 언어</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+        <button onclick="selectLangSetup('ko')" id="lang-ko" class="lang-btn sel" style="padding:8px 4px;font-size:12px;border:1.5px solid var(--blue);border-radius:var(--rs);background:var(--blue-light);color:var(--blue-dark);cursor:pointer;font-weight:600">🇰🇷 한국어</button>
+        <button onclick="selectLangSetup('en')" id="lang-en" class="lang-btn" style="padding:8px 4px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--bg);cursor:pointer">🇺🇸 English</button>
+        <button onclick="selectLangSetup('de')" id="lang-de" class="lang-btn" style="padding:8px 4px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--bg);cursor:pointer">🇩🇪 Deutsch</button>
+        <button onclick="selectLangSetup('es')" id="lang-es" class="lang-btn" style="padding:8px 4px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--bg);cursor:pointer">🇪🇸 Español</button>
+        <button onclick="selectLangSetup('ja')" id="lang-ja" class="lang-btn" style="padding:8px 4px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--bg);cursor:pointer">🇯🇵 日本語</button>
+        <button onclick="selectLangSetup('zh')" id="lang-zh" class="lang-btn" style="padding:8px 4px;font-size:12px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--bg);cursor:pointer">🇨🇳 中文</button>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)">
+      <div id="setup-myinfo-label" style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:16px">👤 내 정보</div>
+      <span id="setup-name-label" class="flabel">이름 (핸들러명) *</span>
+      <input id="setup-name" type="text" placeholder="예: DK Shin" style="margin-bottom:12px">
+      <span id="setup-k9-label" class="flabel">K9 이름 (주로 사용하는 개 이름)</span>
+      <input id="setup-k9" type="text" placeholder="예: Cindy" style="margin-bottom:4px">
+    </div>
+
+    <button id="setup-start-btn" onclick="saveSetup()" style="width:100%;padding:15px;background:var(--blue);color:#fff;border:none;border-radius:var(--r);font-size:16px;font-weight:700;cursor:pointer;margin-top:16px">시작하기 →</button>
+
+    <div id="setup-existing" style="display:none;margin-top:12px;text-align:center">
+      <button id="setup-keep-btn" onclick="closeSetup()" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline">기존 설정 유지하고 계속</button>
+    </div>
+
+    <div style="text-align:center;margin-top:24px;font-size:11px;color:var(--muted)">
+      Made by <strong>DK Shin</strong> · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cbb8a3a2a5afaaa5a1aaa5ac8ba5aabdaeb9e5a8a4a6">[email&#160;protected]</a>
+    </div>
+  </div>
+</div>
+
+<!-- 사용법 안내 오버레이 -->
+<div id="help-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:300;overflow-y:auto">
+  <div style="max-width:500px;margin:0 auto;padding:20px 16px 80px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--blue)">
+      <button onclick="closeHelp()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">←</button>
+      <div style="font-size:18px;font-weight:700;color:var(--blue-dark)" id="help-title">❓ 사용법 안내</div>
+    </div>
+    <div id="help-content"></div>
+  </div>
+</div>
+
+<!-- 설정 버튼 (헤더에 추가) -->
+
+<div class="bnav">
+  <button class="ni active" id="nav-dashboard" onclick="switchTab('dashboard')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>대시보드
+  </button>
+  <button class="ni" id="nav-new" onclick="switchTab('new')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>새 기록
+  </button>
+  <button class="ni" id="nav-history" onclick="switchTab('history')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>기록 목록
+  </button>
+</div>
+
+<div id="toast"></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ======== 언어팩 ========
+const LANGS = {
+  ko: {
+    appName: 'Mantrailing Training Log',
+    appSub: '인명구조견 훈련 기록 시스템',
+    madeBy: 'Made by DK Shin',
+    dashboard: '대시보드', newRecord: '새 기록', history: '기록 목록',
+    totalSessions: '총 세션', metRate: '목표 달성률', avgAge: '평균 Trail Age', avgLen: '평균 거리',
+    recentRecords: '최근 훈련 기록', exportPDF: '📄 전체 기록 PDF', exportCSV: '📊 CSV 내보내기',
+    basicInfo: '기본 정보', k9Name: '견명 (개 이름)', handler: '핸들러 / 훈련사',
+    trainingType: '훈련 유형', date: '날짜', time: '시간', location: '훈련 장소명',
+    address: '상세 주소', objective: '훈련 목표',
+    sessionAdd: '+ 회차 추가', sessionRemove: '− 회차 삭제',
+    trailInfo: '트레일 정보', ageOfTrail: 'Age of Trail', length: 'Length',
+    turns: '# Turns', scent: 'Scent Article', trailTime: 'Trail Time',
+    isIt: 'Is It', dot: 'DoT confirmed?', dotSub: '(방향 확인 여부)',
+    weather: '날씨 & 환경', weatherLabel: 'Weather', temp: 'Temperature',
+    humidity: 'Humidity (습도)', windSpeed: 'Wind Speed', windDir: 'Wind Direction',
+    indoors: 'Indoors?', indoor: '실내 Indoor', outdoor: '실외 Outdoor', env: 'Environment',
+    mapTitle: '트레일 지도', bgImage: '🖼️ 배경 이미지 설정', removeBg: '제거',
+    youtube: '유튜브 URL', reward: 'Reward (보상)', ftr: 'FTR', metLabel: 'Were objectives met?',
+    yesAchieved: 'Yes — 달성 ✓', noFailed: 'No — 미달성 ✗',
+    notes: '훈련 리뷰 & 복기 메모', saveBtnLabel: '기록 저장하기',
+    setupTitle: '처음 사용하시나요? 개인 설정을 완료해 주세요',
+    myInfo: '👤 내 정보', nameLabel: '이름 (핸들러명)', k9Label: 'K9 이름',
+    langLabel: '🌐 언어 선택', startBtn: '시작하기 →', keepSettings: '기존 설정 유지하고 계속',
+    settingsBtn: '⚙️ 설정', helpBtn: '❓ 사용법',
+    editBtn: '✏️ 수정', deleteBtn: '🗑 삭제', pdfBtn: '이 기록 PDF로 저장',
+    autoQuery: '🌤 조회', weatherAutoSub: '날짜·장소 입력 후 날씨 자동 조회',
+    noRecord: '아직 기록이 없어요!', noSearch: '검색 결과가 없습니다.',
+    deleteConfirm: '이 기록을 삭제할까요?', saved: '기록이 저장되었습니다! ✓',
+    deleted: '기록이 삭제되었습니다', edited: '수정이 완료되었습니다! ✓',
+    editMode: '수정 모드 — 내용을 변경 후 저장하세요 ✏️',
+    required: '견명과 날짜는 필수입니다', settingsSaved: '설정이 저장되었습니다! ✓',
+    searchPlaceholder: 'ID, 견명, 핸들러, 장소 검색...',
+    sessionLabel: '차 훈련', sessionData: '차 훈련 데이터',
+    dotSub2: '방향 확인', indoorLabel: '실내', outdoorLabel: '실외',
+    totalSess: '회차', objectives: '훈련 목표', result: '결과',
+    reviewNotes: '훈련 리뷰 & 복기 메모', mapImg: '트레일 지도',
+    penColor: '펜색', thickness: '굵기', pathTool: '경로',
+    startTool: '시작 S', endTool: '종료 E', turnTool: '전환 T', eraseTool: '지우개',
+    clearMap: '경로 지우기', markerLabel: '마커',
+    nameRequired: '이름을 입력해 주세요',
+    helpTitle: '❓ 사용법 안내',
+    helpAbout: '🐕 Mantrailing Training Log란?',
+    helpAboutDesc: '인명구조견(맨트레일링) 훈련 기록을 체계적으로 관리하는 앱입니다. 훈련별로 1~6차 세션 데이터를 입력하고, PDF로 저장할 수 있어요.',
+    helpSteps: '📋 기본 사용 순서',
+    helpStep1: '<strong>⚙️ 설정</strong> — 이름과 K9 이름을 입력하세요',
+    helpStep2: '<strong>+ 새 기록</strong> — 훈련 기본 정보 입력 (견명, 날짜, 장소)',
+    helpStep3: '<strong>🌤 날씨 자동 조회</strong> — 장소 입력 후 날씨를 자동으로 불러와요',
+    helpStep4: '<strong>회차별 입력</strong> — 1차~6차 훈련 데이터를 각각 입력',
+    helpStep5: '<strong>🗺 트레일 지도</strong> — 손가락으로 경로를 그려요',
+    helpStep6: '<strong>저장 & PDF</strong> — 저장 후 기록 목록에서 PDF로 내보내기',
+    helpMap: '🗺 트레일 지도 사용법',
+    helpMapDesc: '• <strong>경로</strong> — 손가락으로 드래그해서 경로 그리기<br>• <strong>시작 S</strong> — 출발점 마커<br>• <strong>종료 E</strong> — 도착점 마커<br>• <strong>전환 T</strong> — 방향 전환점<br>• <strong>🐶 마커</strong> — 개 위치 표시<br>• 지도가 작으면 <strong>좌우로 스크롤</strong>해요 (700×450 고정)',
+    helpStorage: '💾 데이터 저장 방식 (중요!)',
+    helpStorageWarn: '⚠️ 로컬 저장 방식이란?',
+    helpStorageWarnDesc: '이 앱은 <strong>사용하는 기기 안에만</strong> 데이터를 저장해요.<br>인터넷이나 구글 계정과 <strong>연결되어 있지 않아요.</strong>',
+    helpStorageList: '📱 폰에서 입력 → <strong>폰에만 저장</strong><br>💻 PC에서 입력 → <strong>PC에만 저장</strong><br>❌ 폰 기록을 PC에서 볼 수 <strong>없음</strong><br>❌ 브라우저 데이터 삭제 시 기록 <strong>삭제됨</strong>',
+    helpStorageSolution: '✅ 해결 방법',
+    helpStorageSolutionDesc: '1. 항상 <strong>같은 기기</strong>에서 사용하기<br>2. 정기적으로 <strong>📄 PDF 또는 📊 CSV</strong>로 백업하기<br>3. 중요 기록은 저장 즉시 PDF로 내보내기<br>4. 브라우저 캐시/데이터 삭제 시 <strong>기록도 삭제됨</strong> — 주의!',
+    helpTips: '💡 팁',
+    helpTipsDesc: '• 홈 화면에 추가하면 앱처럼 사용 가능해요<br>• 날씨 조회는 과거 날짜도 됩니다<br>• 기록은 언제든 ✏️ 수정 가능해요<br>• CSV로 내보내면 엑셀에서 분석 가능해요<br>• 기기 교체 전 반드시 PDF/CSV 백업!',
+  },
+  en: {
+    appName: 'Mantrailing Training Log',
+    appSub: 'Search & Rescue K9 Training System',
+    madeBy: 'Made by DK Shin',
+    dashboard: 'Dashboard', newRecord: 'New Record', history: 'Records',
+    totalSessions: 'Total Sessions', metRate: 'Goal Rate', avgAge: 'Avg Trail Age', avgLen: 'Avg Distance',
+    recentRecords: 'Recent Training Records', exportPDF: '📄 Full PDF', exportCSV: '📊 Export CSV',
+    basicInfo: 'Basic Info', k9Name: 'K9 Name', handler: 'Handler / Trainer',
+    trainingType: 'Training Type', date: 'Date', time: 'Time', location: 'Location',
+    address: 'Detailed Address', objective: 'Training Objective',
+    sessionAdd: '+ Add Session', sessionRemove: '− Remove Session',
+    trailInfo: 'Trail Info', ageOfTrail: 'Age of Trail', length: 'Length',
+    turns: '# Turns', scent: 'Scent Article', trailTime: 'Trail Time',
+    isIt: 'Is It', dot: 'DoT confirmed?', dotSub: '(Direction of Travel)',
+    weather: 'Weather & Environment', weatherLabel: 'Weather', temp: 'Temperature',
+    humidity: 'Humidity', windSpeed: 'Wind Speed', windDir: 'Wind Direction',
+    indoors: 'Indoors?', indoor: 'Indoor', outdoor: 'Outdoor', env: 'Environment',
+    mapTitle: 'Trail Map', bgImage: '🖼️ Set Background Image', removeBg: 'Remove',
+    youtube: 'YouTube URL', reward: 'Reward', ftr: 'FTR', metLabel: 'Were objectives met?',
+    yesAchieved: 'Yes — Achieved ✓', noFailed: 'No — Not Met ✗',
+    notes: 'Training Review & Reflection', saveBtnLabel: 'Save Record',
+    setupTitle: 'First time? Please complete your profile',
+    myInfo: '👤 My Info', nameLabel: 'Name (Handler)', k9Label: 'K9 Name',
+    langLabel: '🌐 Language', startBtn: 'Get Started →', keepSettings: 'Keep existing settings',
+    settingsBtn: '⚙️ Settings', helpBtn: '❓ Help',
+    editBtn: '✏️ Edit', deleteBtn: '🗑 Delete', pdfBtn: 'Save as PDF',
+    autoQuery: '🌤 Auto', weatherAutoSub: 'Auto-fetch weather by date & location',
+    noRecord: 'No records yet!', noSearch: 'No results found.',
+    deleteConfirm: 'Delete this record?', saved: 'Record saved! ✓',
+    deleted: 'Record deleted', edited: 'Record updated! ✓',
+    editMode: 'Edit mode — modify and save ✏️',
+    required: 'K9 name and date are required', settingsSaved: 'Settings saved! ✓',
+    searchPlaceholder: 'Search ID, K9, handler, location...',
+    sessionLabel: ' Session', sessionData: ' Session Data',
+    dotSub2: 'Direction confirmed', indoorLabel: 'Indoor', outdoorLabel: 'Outdoor',
+    totalSess: 'session(s)', objectives: 'Objectives', result: 'Result',
+    reviewNotes: 'Training Review & Reflection', mapImg: 'Trail Map',
+    penColor: 'Color', thickness: 'Size', pathTool: 'Path',
+    startTool: 'Start S', endTool: 'End E', turnTool: 'Turn T', eraseTool: 'Erase',
+    clearMap: 'Clear Map', markerLabel: 'Marker',
+    nameRequired: 'Please enter your name',
+    helpTitle: '❓ How to Use',
+    helpAbout: '🐕 What is Mantrailing Training Log?',
+    helpAboutDesc: 'A systematic training log app for search & rescue K9 (mantrailing) teams. Record up to 6 sessions per training day and export as PDF.',
+    helpSteps: '📋 Basic Steps',
+    helpStep1: '<strong>⚙️ Settings</strong> — Enter your name and K9 name',
+    helpStep2: '<strong>+ New Record</strong> — Enter basic info (K9, date, location)',
+    helpStep3: '<strong>🌤 Auto Weather</strong> — Fetch weather automatically by location',
+    helpStep4: '<strong>Sessions</strong> — Enter data for sessions 1~6',
+    helpStep5: '<strong>🗺 Trail Map</strong> — Draw the trail path with your finger',
+    helpStep6: '<strong>Save & PDF</strong> — Save then export as PDF from records list',
+    helpMap: '🗺 Trail Map Guide',
+    helpMapDesc: '• <strong>Path</strong> — Drag finger to draw trail<br>• <strong>Start S</strong> — Starting point marker<br>• <strong>End E</strong> — Ending point marker<br>• <strong>Turn T</strong> — Direction change point<br>• <strong>🐶 Marker</strong> — Dog position<br>• Scroll horizontally if map is too wide (fixed 700×450)',
+    helpStorage: '💾 Data Storage (Important!)',
+    helpStorageWarn: '⚠️ Local Storage Mode',
+    helpStorageWarnDesc: 'This app stores data <strong>only on your device</strong>.<br>It is <strong>not connected</strong> to the internet or Google.',
+    helpStorageList: '📱 Phone → saved <strong>on phone only</strong><br>💻 PC → saved <strong>on PC only</strong><br>❌ Phone records <strong>not visible</strong> on PC<br>❌ Clearing browser data <strong>deletes records</strong>',
+    helpStorageSolution: '✅ Solutions',
+    helpStorageSolutionDesc: '1. Always use the <strong>same device</strong><br>2. Regularly export <strong>📄 PDF or 📊 CSV</strong><br>3. Export important records immediately after saving<br>4. <strong>Do not clear browser data</strong> — records will be lost!',
+    helpTips: '💡 Tips',
+    helpTipsDesc: '• Add to home screen to use like a native app<br>• Weather fetch works for past dates too<br>• Records can be edited anytime ✏️<br>• CSV export opens in Excel<br>• Always backup before changing or resetting device!',
+  },
+  de: {
+    appName: 'Mantrailing Training Log',
+    appSub: 'Rettungshund Trainingsprotokoll',
+    madeBy: 'Erstellt von DK Shin',
+    dashboard: 'Dashboard', newRecord: 'Neu', history: 'Protokolle',
+    totalSessions: 'Sitzungen', metRate: 'Zielerreichung', avgAge: 'Ø Spuralter', avgLen: 'Ø Distanz',
+    recentRecords: 'Letzte Trainings', exportPDF: '📄 PDF Export', exportCSV: '📊 CSV Export',
+    basicInfo: 'Grunddaten', k9Name: 'Hundename', handler: 'Handler / Trainer',
+    trainingType: 'Trainingsart', date: 'Datum', time: 'Uhrzeit', location: 'Ort',
+    address: 'Adresse', objective: 'Trainingsziel',
+    sessionAdd: '+ Durchgang hinzu', sessionRemove: '− Entfernen',
+    trailInfo: 'Spur-Info', ageOfTrail: 'Spuralter', length: 'Länge',
+    turns: 'Richtungsänderungen', scent: 'Geruchsartikel', trailTime: 'Spurzeit',
+    isIt: 'Spurart', dot: 'DoT bestätigt?', dotSub: '(Laufrichtung)',
+    weather: 'Wetter & Umgebung', weatherLabel: 'Wetter', temp: 'Temperatur',
+    humidity: 'Luftfeuchtigkeit', windSpeed: 'Windgeschwindigkeit', windDir: 'Windrichtung',
+    indoors: 'Innen?', indoor: 'Innen', outdoor: 'Außen', env: 'Umgebung',
+    mapTitle: 'Spurkarte', bgImage: '🖼️ Hintergrundbild', removeBg: 'Entfernen',
+    youtube: 'YouTube URL', reward: 'Belohnung', ftr: 'FTR', metLabel: 'Ziel erreicht?',
+    yesAchieved: 'Ja — Erreicht ✓', noFailed: 'Nein — Nicht erreicht ✗',
+    notes: 'Trainingsauswertung', saveBtnLabel: 'Speichern',
+    setupTitle: 'Ersteinrichtung', myInfo: '👤 Meine Daten', nameLabel: 'Name', k9Label: 'Hundename',
+    langLabel: '🌐 Sprache', startBtn: 'Starten →', keepSettings: 'Einstellungen behalten',
+    settingsBtn: '⚙️ Einstellungen', helpBtn: '❓ Hilfe',
+    editBtn: '✏️ Bearbeiten', deleteBtn: '🗑 Löschen', pdfBtn: 'Als PDF speichern',
+    autoQuery: '🌤 Auto', weatherAutoSub: 'Wetter automatisch abrufen',
+    noRecord: 'Noch keine Einträge!', noSearch: 'Keine Ergebnisse.',
+    deleteConfirm: 'Diesen Eintrag löschen?', saved: 'Gespeichert! ✓',
+    deleted: 'Gelöscht', edited: 'Aktualisiert! ✓', editMode: 'Bearbeitungsmodus ✏️',
+    required: 'Hundename und Datum erforderlich', settingsSaved: 'Einstellungen gespeichert! ✓',
+    searchPlaceholder: 'ID, Hund, Handler, Ort suchen...',
+    sessionLabel: '. Durchgang', sessionData: '. Durchgang Daten',
+    dotSub2: 'Richtung bestätigt', indoorLabel: 'Innen', outdoorLabel: 'Außen',
+    totalSess: 'Durchgang/Durchgänge', objectives: 'Ziele', result: 'Ergebnis',
+    reviewNotes: 'Trainingsauswertung', mapImg: 'Spurkarte',
+    penColor: 'Farbe', thickness: 'Stärke', pathTool: 'Pfad',
+    startTool: 'Start S', endTool: 'Ende E', turnTool: 'Wende T', eraseTool: 'Radierer',
+    clearMap: 'Karte löschen', markerLabel: 'Marker',
+    nameRequired: 'Bitte Name eingeben',
+    helpTitle: '❓ Hilfe & Anleitung',
+    helpAbout: '🐕 Was ist das Mantrailing Training Log?',
+    helpAboutDesc: 'Eine App zur systematischen Erfassung von Mantrailing-Trainingseinheiten. Bis zu 6 Durchgänge pro Training, mit PDF-Export.',
+    helpSteps: '📋 Grundlegende Schritte',
+    helpStep1: '<strong>⚙️ Einstellungen</strong> — Name und Hundename eingeben',
+    helpStep2: '<strong>+ Neu</strong> — Grunddaten eingeben (Hund, Datum, Ort)',
+    helpStep3: '<strong>🌤 Wetter Auto</strong> — Wetter automatisch abrufen',
+    helpStep4: '<strong>Durchgänge</strong> — Daten für Durchgang 1~6 eingeben',
+    helpStep5: '<strong>🗺 Spurkarte</strong> — Spur mit dem Finger zeichnen',
+    helpStep6: '<strong>Speichern & PDF</strong> — Speichern, dann PDF exportieren',
+    helpMap: '🗺 Spurkarte Anleitung',
+    helpMapDesc: '• <strong>Pfad</strong> — Finger ziehen zum Zeichnen<br>• <strong>Start S</strong> — Startpunkt<br>• <strong>Ende E</strong> — Endpunkt<br>• <strong>Wende T</strong> — Richtungsänderung<br>• <strong>🐶 Marker</strong> — Hundeposition<br>• Horizontal scrollen wenn Karte zu breit (700×450 fest)',
+    helpStorage: '💾 Datenspeicherung (Wichtig!)',
+    helpStorageWarn: '⚠️ Lokale Speicherung',
+    helpStorageWarnDesc: 'Diese App speichert Daten <strong>nur auf Ihrem Gerät</strong>.<br>Keine Verbindung zum Internet oder Google.',
+    helpStorageList: '📱 Handy → nur <strong>auf Handy gespeichert</strong><br>💻 PC → nur <strong>auf PC gespeichert</strong><br>❌ Handy-Daten <strong>nicht</strong> auf PC sichtbar<br>❌ Browser-Daten löschen = <strong>Einträge gelöscht</strong>',
+    helpStorageSolution: '✅ Lösungen',
+    helpStorageSolutionDesc: '1. Immer <strong>dasselbe Gerät</strong> verwenden<br>2. Regelmäßig <strong>📄 PDF oder 📊 CSV</strong> exportieren<br>3. Wichtige Einträge sofort sichern<br>4. <strong>Browser-Daten nicht löschen</strong>!',
+    helpTips: '💡 Tipps',
+    helpTipsDesc: '• Zum Startbildschirm hinzufügen für App-Gefühl<br>• Wetter auch für vergangene Daten abrufbar<br>• Einträge jederzeit bearbeiten ✏️<br>• CSV in Excel öffnen<br>• Vor Gerätewechsel immer PDF/CSV sichern!',
+  },
+  es: {
+    appName: 'Mantrailing Training Log',
+    appSub: 'Sistema de Registro de Entrenamiento K9',
+    madeBy: 'Creado por DK Shin',
+    dashboard: 'Panel', newRecord: 'Nuevo', history: 'Registros',
+    totalSessions: 'Sesiones', metRate: 'Tasa de Logro', avgAge: 'Edad Media', avgLen: 'Distancia Media',
+    recentRecords: 'Registros Recientes', exportPDF: '📄 PDF', exportCSV: '📊 CSV',
+    basicInfo: 'Info Básica', k9Name: 'Nombre K9', handler: 'Guía / Entrenador',
+    trainingType: 'Tipo', date: 'Fecha', time: 'Hora', location: 'Ubicación',
+    address: 'Dirección', objective: 'Objetivo',
+    sessionAdd: '+ Añadir Sesión', sessionRemove: '− Eliminar',
+    trailInfo: 'Info de Pista', ageOfTrail: 'Edad de Pista', length: 'Longitud',
+    turns: '# Giros', scent: 'Artículo Olfativo', trailTime: 'Tiempo en Pista',
+    isIt: 'Tipo', dot: '¿DoT confirmado?', dotSub: '(Dirección de marcha)',
+    weather: 'Clima & Entorno', weatherLabel: 'Clima', temp: 'Temperatura',
+    humidity: 'Humedad', windSpeed: 'Velocidad del Viento', windDir: 'Dirección del Viento',
+    indoors: '¿Interior?', indoor: 'Interior', outdoor: 'Exterior', env: 'Entorno',
+    mapTitle: 'Mapa de Pista', bgImage: '🖼️ Imagen de Fondo', removeBg: 'Eliminar',
+    youtube: 'URL YouTube', reward: 'Recompensa', ftr: 'RFE', metLabel: '¿Objetivos logrados?',
+    yesAchieved: 'Sí — Logrado ✓', noFailed: 'No — No Logrado ✗',
+    notes: 'Revisión del Entrenamiento', saveBtnLabel: 'Guardar',
+    setupTitle: '¿Primera vez? Configura tu perfil',
+    myInfo: '👤 Mi Perfil', nameLabel: 'Nombre', k9Label: 'Nombre K9',
+    langLabel: '🌐 Idioma', startBtn: 'Comenzar →', keepSettings: 'Mantener configuración',
+    settingsBtn: '⚙️ Ajustes', helpBtn: '❓ Ayuda',
+    editBtn: '✏️ Editar', deleteBtn: '🗑 Eliminar', pdfBtn: 'Guardar PDF',
+    autoQuery: '🌤 Auto', weatherAutoSub: 'Clima automático por fecha y lugar',
+    noRecord: '¡Sin registros!', noSearch: 'Sin resultados.',
+    deleteConfirm: '¿Eliminar este registro?', saved: '¡Guardado! ✓',
+    deleted: 'Eliminado', edited: '¡Actualizado! ✓', editMode: 'Modo edición ✏️',
+    required: 'Nombre K9 y fecha requeridos', settingsSaved: '¡Ajustes guardados! ✓',
+    searchPlaceholder: 'Buscar ID, K9, guía, ubicación...',
+    sessionLabel: '.ª Sesión', sessionData: '.ª Sesión Datos',
+    dotSub2: 'Dirección confirmada', indoorLabel: 'Interior', outdoorLabel: 'Exterior',
+    totalSess: 'sesión/sesiones', objectives: 'Objetivos', result: 'Resultado',
+    reviewNotes: 'Revisión del Entrenamiento', mapImg: 'Mapa de Pista',
+    penColor: 'Color', thickness: 'Grosor', pathTool: 'Ruta',
+    startTool: 'Inicio S', endTool: 'Fin E', turnTool: 'Giro T', eraseTool: 'Borrar',
+    clearMap: 'Borrar Mapa', markerLabel: 'Marcador',
+    nameRequired: 'Por favor ingresa tu nombre',
+    helpTitle: '❓ Cómo Usar',
+    helpAbout: '🐕 ¿Qué es Mantrailing Training Log?',
+    helpAboutDesc: 'App para registrar sistemáticamente el entrenamiento de perros de búsqueda (mantrailing). Hasta 6 sesiones por entrenamiento, con exportación PDF.',
+    helpSteps: '📋 Pasos Básicos',
+    helpStep1: '<strong>⚙️ Ajustes</strong> — Ingresa tu nombre y nombre del K9',
+    helpStep2: '<strong>+ Nuevo</strong> — Ingresa información básica (K9, fecha, lugar)',
+    helpStep3: '<strong>🌤 Clima Auto</strong> — Obtén el clima automáticamente',
+    helpStep4: '<strong>Sesiones</strong> — Ingresa datos para sesiones 1~6',
+    helpStep5: '<strong>🗺 Mapa</strong> — Dibuja la pista con el dedo',
+    helpStep6: '<strong>Guardar & PDF</strong> — Guarda y exporta como PDF',
+    helpMap: '🗺 Guía del Mapa',
+    helpMapDesc: '• <strong>Ruta</strong> — Arrastrar dedo para dibujar<br>• <strong>Inicio S</strong> — Punto de inicio<br>• <strong>Fin E</strong> — Punto final<br>• <strong>Giro T</strong> — Cambio de dirección<br>• <strong>🐶 Marcador</strong> — Posición del perro<br>• Scroll horizontal si el mapa es ancho (700×450 fijo)',
+    helpStorage: '💾 Almacenamiento (¡Importante!)',
+    helpStorageWarn: '⚠️ Modo Local',
+    helpStorageWarnDesc: 'Esta app guarda datos <strong>solo en tu dispositivo</strong>.<br><strong>No está conectada</strong> a internet ni a Google.',
+    helpStorageList: '📱 Móvil → guardado <strong>solo en móvil</strong><br>💻 PC → guardado <strong>solo en PC</strong><br>❌ Registros del móvil <strong>no visibles</strong> en PC<br>❌ Limpiar navegador <strong>elimina registros</strong>',
+    helpStorageSolution: '✅ Soluciones',
+    helpStorageSolutionDesc: '1. Usar siempre el <strong>mismo dispositivo</strong><br>2. Exportar regularmente <strong>📄 PDF o 📊 CSV</strong><br>3. Exportar registros importantes inmediatamente<br>4. <strong>No limpiar datos del navegador</strong>',
+    helpTips: '💡 Consejos',
+    helpTipsDesc: '• Añadir a pantalla de inicio para usar como app<br>• El clima también funciona para fechas pasadas<br>• Editar registros en cualquier momento ✏️<br>• CSV se abre en Excel<br>• ¡Siempre haz backup antes de cambiar de dispositivo!',
+  },
+  ja: {
+    appName: 'Mantrailing Training Log',
+    appSub: '人命救助犬訓練記録システム',
+    madeBy: 'DK Shin 作',
+    dashboard: 'ダッシュボード', newRecord: '新規記録', history: '記録一覧',
+    totalSessions: '総セッション', metRate: '目標達成率', avgAge: '平均トレイル年齢', avgLen: '平均距離',
+    recentRecords: '最近の訓練記録', exportPDF: '📄 PDF出力', exportCSV: '📊 CSVエクスポート',
+    basicInfo: '基本情報', k9Name: 'K9名', handler: 'ハンドラー',
+    trainingType: '訓練種別', date: '日付', time: '時間', location: '場所',
+    address: '詳細住所', objective: '訓練目標',
+    sessionAdd: '+ セッション追加', sessionRemove: '− 削除',
+    trailInfo: 'トレイル情報', ageOfTrail: 'トレイル年齢', length: '距離',
+    turns: '方向転換数', scent: '臭気資料', trailTime: 'トレイル時間',
+    isIt: '種類', dot: 'DoT確認?', dotSub: '(進行方向確認)',
+    weather: '天気・環境', weatherLabel: '天気', temp: '気温',
+    humidity: '湿度', windSpeed: '風速', windDir: '風向',
+    indoors: '屋内?', indoor: '屋内', outdoor: '屋外', env: '環境',
+    mapTitle: 'トレイルマップ', bgImage: '🖼️ 背景画像設定', removeBg: '削除',
+    youtube: 'YouTube URL', reward: '報酬', ftr: 'FTR', metLabel: '目標達成?',
+    yesAchieved: 'はい — 達成 ✓', noFailed: 'いいえ — 未達成 ✗',
+    notes: '訓練レビュー', saveBtnLabel: '記録を保存',
+    setupTitle: '初回設定', myInfo: '👤 プロフィール', nameLabel: '名前', k9Label: 'K9名',
+    langLabel: '🌐 言語', startBtn: 'スタート →', keepSettings: '設定を維持',
+    settingsBtn: '⚙️ 設定', helpBtn: '❓ ヘルプ',
+    editBtn: '✏️ 編集', deleteBtn: '🗑 削除', pdfBtn: 'PDFとして保存',
+    autoQuery: '🌤 自動', weatherAutoSub: '日付と場所から天気を自動取得',
+    noRecord: '記録がありません！', noSearch: '検索結果なし。',
+    deleteConfirm: 'この記録を削除しますか?', saved: '保存しました！ ✓',
+    deleted: '削除しました', edited: '更新しました！ ✓', editMode: '編集モード ✏️',
+    required: 'K9名と日付は必須です', settingsSaved: '設定を保存しました！ ✓',
+    searchPlaceholder: 'ID、K9名、ハンドラー、場所を検索...',
+    sessionLabel: '回目セッション', sessionData: '回目セッションデータ',
+    dotSub2: '方向確認', indoorLabel: '屋内', outdoorLabel: '屋外',
+    totalSess: 'セッション', objectives: '目標', result: '結果',
+    reviewNotes: '訓練レビュー', mapImg: 'トレイルマップ',
+    penColor: '色', thickness: '太さ', pathTool: 'パス',
+    startTool: 'スタート S', endTool: 'ゴール E', turnTool: '転換 T', eraseTool: '消しゴム',
+    clearMap: 'マップをクリア', markerLabel: 'マーカー',
+    nameRequired: '名前を入力してください',
+    helpTitle: '❓ 使い方',
+    helpAbout: '🐕 Mantrailing Training Logとは?',
+    helpAboutDesc: '人命救助犬（マントレイリング）の訓練記録を体系的に管理するアプリです。訓練ごとに1~6回のセッションデータを入力し、PDFで保存できます。',
+    helpSteps: '📋 基本的な手順',
+    helpStep1: '<strong>⚙️ 設定</strong> — 名前とK9名を入力',
+    helpStep2: '<strong>+ 新規記録</strong> — 基本情報を入力（犬名、日付、場所）',
+    helpStep3: '<strong>🌤 天気自動取得</strong> — 場所入力後に天気を自動取得',
+    helpStep4: '<strong>セッション入力</strong> — 1~6回目のデータを入力',
+    helpStep5: '<strong>🗺 トレイルマップ</strong> — 指でルートを描く',
+    helpStep6: '<strong>保存 & PDF</strong> — 保存後、記録一覧からPDF出力',
+    helpMap: '🗺 マップの使い方',
+    helpMapDesc: '• <strong>パス</strong> — 指でドラッグしてルートを描く<br>• <strong>スタート S</strong> — 出発点マーカー<br>• <strong>ゴール E</strong> — 終着点マーカー<br>• <strong>転換 T</strong> — 方向転換点<br>• <strong>🐶 マーカー</strong> — 犬の位置<br>• 地図が広い場合は横スクロール（700×450固定）',
+    helpStorage: '💾 データ保存方式（重要！）',
+    helpStorageWarn: '⚠️ ローカル保存方式とは?',
+    helpStorageWarnDesc: 'このアプリはデータを<strong>お使いの端末内にのみ</strong>保存します。<br>インターネットやGoogleアカウントとは<strong>連携していません。</strong>',
+    helpStorageList: '📱 スマホ → <strong>スマホにのみ</strong>保存<br>💻 PC → <strong>PCにのみ</strong>保存<br>❌ スマホの記録はPCで<strong>見られない</strong><br>❌ ブラウザデータ削除で記録も<strong>消える</strong>',
+    helpStorageSolution: '✅ 解決方法',
+    helpStorageSolutionDesc: '1. 常に<strong>同じ端末</strong>を使う<br>2. 定期的に<strong>📄 PDF または 📊 CSV</strong>でバックアップ<br>3. 重要な記録は保存後すぐにエクスポート<br>4. ブラウザのデータを<strong>削除しない</strong>ように注意！',
+    helpTips: '💡 ヒント',
+    helpTipsDesc: '• ホーム画面に追加するとアプリのように使える<br>• 天気は過去の日付でも取得可能<br>• 記録はいつでも✏️編集できる<br>• CSVはExcelで開ける<br>• 端末交換前に必ずPDF/CSVバックアップ！',
+  },
+  zh: {
+    appName: 'Mantrailing Training Log',
+    appSub: '搜救犬训练记录系统',
+    madeBy: 'DK Shin 制作',
+    dashboard: '仪表板', newRecord: '新记录', history: '记录列表',
+    totalSessions: '总场次', metRate: '达成率', avgAge: '平均轨迹龄', avgLen: '平均距离',
+    recentRecords: '最近训练记录', exportPDF: '📄 导出PDF', exportCSV: '📊 导出CSV',
+    basicInfo: '基本信息', k9Name: '犬名', handler: '引导员',
+    trainingType: '训练类型', date: '日期', time: '时间', location: '地点',
+    address: '详细地址', objective: '训练目标',
+    sessionAdd: '+ 添加场次', sessionRemove: '− 删除',
+    trailInfo: '轨迹信息', ageOfTrail: '轨迹龄', length: '距离',
+    turns: '转向次数', scent: '气味物品', trailTime: '追踪时间',
+    isIt: '类型', dot: 'DoT确认?', dotSub: '(行进方向确认)',
+    weather: '天气与环境', weatherLabel: '天气', temp: '温度',
+    humidity: '湿度', windSpeed: '风速', windDir: '风向',
+    indoors: '室内?', indoor: '室内', outdoor: '室外', env: '环境',
+    mapTitle: '轨迹地图', bgImage: '🖼️ 设置背景图片', removeBg: '删除',
+    youtube: 'YouTube链接', reward: '奖励', ftr: 'FTR', metLabel: '是否达成目标?',
+    yesAchieved: '是 — 已达成 ✓', noFailed: '否 — 未达成 ✗',
+    notes: '训练回顾', saveBtnLabel: '保存记录',
+    setupTitle: '首次使用？请完成个人设置',
+    myInfo: '👤 我的信息', nameLabel: '姓名', k9Label: '犬名',
+    langLabel: '🌐 语言', startBtn: '开始 →', keepSettings: '保留现有设置',
+    settingsBtn: '⚙️ 设置', helpBtn: '❓ 使用说明',
+    editBtn: '✏️ 编辑', deleteBtn: '🗑 删除', pdfBtn: '保存为PDF',
+    autoQuery: '🌤 自动', weatherAutoSub: '根据日期和地点自动获取天气',
+    noRecord: '暂无记录！', noSearch: '未找到结果。',
+    deleteConfirm: '删除此记录?', saved: '已保存！ ✓',
+    deleted: '已删除', edited: '已更新！ ✓', editMode: '编辑模式 ✏️',
+    required: '犬名和日期为必填项', settingsSaved: '设置已保存！ ✓',
+    searchPlaceholder: '搜索ID、犬名、引导员、地点...',
+    sessionLabel: '场次', sessionData: '场次数据',
+    dotSub2: '方向已确认', indoorLabel: '室内', outdoorLabel: '室外',
+    totalSess: '场次', objectives: '目标', result: '结果',
+    reviewNotes: '训练回顾', mapImg: '轨迹地图',
+    penColor: '颜色', thickness: '粗细', pathTool: '路径',
+    startTool: '起点 S', endTool: '终点 E', turnTool: '转向 T', eraseTool: '橡皮',
+    clearMap: '清除地图', markerLabel: '标记',
+    nameRequired: '请输入您的姓名',
+    helpTitle: '❓ 使用说明',
+    helpAbout: '🐕 Mantrailing Training Log是什么?',
+    helpAboutDesc: '一款系统管理搜救犬（人体气味追踪）训练记录的应用。每次训练可记录1~6个场次数据，并可导出PDF。',
+    helpSteps: '📋 基本使用步骤',
+    helpStep1: '<strong>⚙️ 设置</strong> — 输入您的姓名和犬名',
+    helpStep2: '<strong>+ 新记录</strong> — 输入基本信息（犬名、日期、地点）',
+    helpStep3: '<strong>🌤 自动天气</strong> — 输入地址后自动获取天气',
+    helpStep4: '<strong>场次输入</strong> — 依次输入第1~6场次数据',
+    helpStep5: '<strong>🗺 轨迹地图</strong> — 用手指绘制轨迹路径',
+    helpStep6: '<strong>保存 & PDF</strong> — 保存后从记录列表导出PDF',
+    helpMap: '🗺 地图使用说明',
+    helpMapDesc: '• <strong>路径</strong> — 手指拖动绘制轨迹<br>• <strong>起点 S</strong> — 起始位置标记<br>• <strong>终点 E</strong> — 结束位置标记<br>• <strong>转向 T</strong> — 方向转换点<br>• <strong>🐶 标记</strong> — 犬只位置<br>• 地图较宽时可横向滚动（固定700×450）',
+    helpStorage: '💾 数据存储方式（重要！）',
+    helpStorageWarn: '⚠️ 本地存储方式说明',
+    helpStorageWarnDesc: '本应用将数据<strong>仅存储在您使用的设备上</strong>。<br>不与互联网或谷歌账号<strong>连接。</strong>',
+    helpStorageList: '📱 手机 → 仅保存<strong>在手机上</strong><br>💻 PC → 仅保存<strong>在PC上</strong><br>❌ 手机记录在PC上<strong>不可见</strong><br>❌ 清除浏览器数据会<strong>删除记录</strong>',
+    helpStorageSolution: '✅ 解决方法',
+    helpStorageSolutionDesc: '1. 始终使用<strong>同一设备</strong><br>2. 定期导出<strong>📄 PDF 或 📊 CSV</strong>备份<br>3. 重要记录保存后立即导出<br>4. <strong>不要清除浏览器数据</strong>！',
+    helpTips: '💡 使用技巧',
+    helpTipsDesc: '• 添加到主屏幕可像App一样使用<br>• 天气查询支持过去日期<br>• 随时可编辑记录 ✏️<br>• CSV可用Excel打开<br>• 换设备前务必备份PDF/CSV！',
+  }
+};
+
+let currentLang = 'ko';
+let T = LANGS.ko; // 현재 언어팩 단축어
+
+function setLang(lang) {
+  currentLang = lang;
+  T = LANGS[lang] || LANGS.ko;
+  try { localStorage.setItem('mt_lang', lang); } catch(e) {}
+  applyLang();
+}
+
+function applyLang() {
+  // 헤더
+  const h1 = document.querySelector('.hdr h1');
+  if (h1) h1.textContent = T.appName;
+  updateHeader();
+  // 하단 네비
+  const navLabels = [T.dashboard, T.newRecord, T.history];
+  document.querySelectorAll('.ni').forEach((btn,i) => {
+    const svg = btn.querySelector('svg');
+    btn.textContent = navLabels[i]||'';
+    if (svg) btn.insertBefore(svg, btn.firstChild);
+  });
+  // 저장 버튼
+  const saveBtn = document.getElementById('save-btn');
+  if (saveBtn && !window._editingId) saveBtn.textContent = T.saveBtnLabel;
+  // 검색 placeholder
+  const sq = document.getElementById('search-q');
+  if (sq) sq.placeholder = T.searchPlaceholder;
+  // 헤더 버튼
+  const settingsBtn = document.querySelector('[onclick="openSetup()"]');
+  if (settingsBtn) settingsBtn.textContent = T.settingsBtn;
+  // 대시보드 메트릭
+  document.querySelectorAll('.ml')[0] && (document.querySelectorAll('.ml')[0].textContent = T.totalSessions);
+  document.querySelectorAll('.ml')[1] && (document.querySelectorAll('.ml')[1].textContent = T.metRate);
+  document.querySelectorAll('.ml')[2] && (document.querySelectorAll('.ml')[2].textContent = T.avgAge);
+  document.querySelectorAll('.ml')[3] && (document.querySelectorAll('.ml')[3].textContent = T.avgLen);
+  // 리렌더
+  renderDashboard();
+  renderHistory();
+}
+
+// ======== 설정: Google Apps Script URL ========
+// 아래 URL을 본인의 GAS 웹앱 URL로 교체하세요
+// ======== 개인 설정 (로컬 저장) ========
+let userProfile = {};
+try { userProfile = JSON.parse(localStorage.getItem('mt_profile') || '{}'); } catch(e) {}
+// 저장된 언어 불러오기
+try { currentLang = localStorage.getItem('mt_lang') || userProfile.lang || 'ko'; T = LANGS[currentLang] || LANGS.ko; } catch(e) {}
+const GAS_URL = ''; // 로컬 저장 방식 — 구글 시트 미연동
+
+// ======== 상태 ========
+let entries = [];
+try { entries = JSON.parse(localStorage.getItem('dk_mt_v3') || '[]'); } catch(e) {}
+
+let selState = { type: '', blind: '' };
+let ynState = { dot: '', met: '', indoor: '' };
+let mapTool = 'path';
+
+// ======== 회차 관리 ========
+let sessions = []; // 각 회차 데이터 저장
+let activeSession = 0; // 현재 활성 회차 인덱스
+let sessionCanvases = {}; // 회차별 캔버스 상태
+let sessionMapPaths = {}; // 회차별 경로
+let sessionMapPoints = {}; // 회차별 마커
+
+function sessionFormHTML(idx) {
+  const n = idx + 1;
+  const sid = `s${idx}`;
+  return `
+  <div class="card session-form" id="sf-${idx}" style="${idx===0?'':'display:none'}">
+    <div class="ct" style="color:var(--blue-dark)">${n}차 훈련 데이터</div>
+
+    <!-- 날씨 자동 조회 -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:9px 12px;background:var(--blue-light);border-radius:var(--rs);border:1px solid #b5d4f4">
+      <div style="flex:1;font-size:12px;color:var(--blue-dark)">날짜·장소 입력 후 ${n}차 날씨 자동 조회</div>
+      <button onclick="fetchWeather(${idx})" id="weather-fetch-btn-${idx}" style="padding:6px 12px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0">🌤 조회</button>
+    </div>
+    <div id="weather-status-${idx}" style="font-size:12px;margin-bottom:8px;display:none"></div>
+
+    <!-- 트레일 정보 -->
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">트레일 정보</div>
+    <div class="g2">
+      <div><span class="flabel">Age of Trail</span>
+        <div class="irow"><input id="${sid}-age" type="number" min="0" placeholder="0"><span class="unit">min</span></div></div>
+      <div><span class="flabel">Length</span>
+        <div class="irow"><input id="${sid}-length" type="number" min="0" placeholder="0"><span class="unit">m</span></div></div>
+    </div>
+    <div class="g2">
+      <div><span class="flabel"># Turns</span>
+        <input id="${sid}-turns" type="number" min="0" placeholder="0"></div>
+      <div><span class="flabel">Trail Time</span>
+        <div class="irow"><input id="${sid}-trailtime" type="number" min="0" placeholder="0"><span class="unit">sec</span></div></div>
+    </div>
+    <span class="flabel">Scent Article</span>
+    <input id="${sid}-scent" type="text" placeholder="예: 의류, 모자...">
+    <span class="flabel">Is It</span>
+    <div class="btn-group" id="${sid}-blind-group">
+      <button class="bg-btn" onclick="toggleSession(${idx},'blind','known',this)">Known</button>
+      <button class="bg-btn" onclick="toggleSession(${idx},'blind','blind',this)">Blind</button>
+      <button class="bg-btn" onclick="toggleSession(${idx},'blind','dbl',this)">Dbl Blind</button>
+    </div>
+    <span class="flabel">DoT confirmed? <span style="font-weight:400;color:var(--muted)">(방향 확인)</span></span>
+    <div class="yn-group">
+      <div class="yn-btn" id="${sid}-dot-yes" onclick="setSessionYN(${idx},'dot','yes')">Yes ✓</div>
+      <div class="yn-btn" id="${sid}-dot-no" onclick="setSessionYN(${idx},'dot','no')">No ✗</div>
+    </div>
+    <div id="${sid}-dot-note-wrap" style="display:none;margin-top:8px">
+      <input id="${sid}-dot-note" type="text" placeholder="DoT 미확인 사유...">
+    </div>
+
+    <!-- 날씨 -->
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 8px">날씨 & 환경</div>
+    <select id="${sid}-weather">
+      <option value="">날씨 선택</option>
+      <option>맑음 Clear</option><option>흐림 Cloudy</option>
+      <option>비 Rain</option><option>안개 Fog</option><option>눈 Snow</option><option>바람 Windy</option>
+    </select>
+    <div class="g2" style="margin-top:8px">
+      <div><span class="flabel">온도</span>
+        <div class="irow"><input id="${sid}-temp" type="number" placeholder="0"><span class="unit">°C</span></div></div>
+      <div><span class="flabel">습도</span>
+        <div class="irow"><input id="${sid}-humidity" type="number" min="0" max="100" placeholder="0"><span class="unit">%</span></div></div>
+    </div>
+    <div class="g2">
+      <div><span class="flabel">풍속</span>
+        <div class="irow"><input id="${sid}-wind" type="number" step="0.1" placeholder="0.0"><span class="unit">m/s</span></div></div>
+      <div><span class="flabel">풍향</span>
+        <select id="${sid}-winddir">
+          <option value="">선택</option>
+          <option>N</option><option>NE</option><option>E</option><option>SE</option>
+          <option>S</option><option>SW</option><option>W</option><option>NW</option>
+        </select></div>
+    </div>
+    <span class="flabel">Indoors?</span>
+    <div class="yn-group">
+      <div class="yn-btn" id="${sid}-indoor-yes" onclick="setSessionYN(${idx},'indoor','yes')">실내</div>
+      <div class="yn-btn" id="${sid}-indoor-no" onclick="setSessionYN(${idx},'indoor','no')">실외</div>
+    </div>
+    <span class="flabel">Environment / Conditions</span>
+    <textarea id="${sid}-env" placeholder="환경 조건..."></textarea>
+
+    <!-- 트레일 지도 -->
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 8px">트레일 지도</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+      <div style="position:relative;flex:1">
+        <input type="file" accept="image/*" id="${sid}-map-bg-input" onchange="loadSessionMapBg(this,${idx})" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2">
+        <div id="${sid}-map-bg-btn" style="padding:7px 12px;font-size:12px;border:1.5px dashed var(--border);border-radius:var(--rs);background:var(--bg);color:var(--muted);text-align:center;cursor:pointer">🖼️ 배경 이미지 설정</div>
+      </div>
+      <button class="tool-btn" onclick="removeSessionMapBg(${idx})" id="${sid}-map-bg-remove" style="display:none;color:var(--red);border-color:var(--red);flex-shrink:0">제거</button>
+    </div>
+    <div class="map-tools">
+      <button class="tool-btn active" id="${sid}-tool-path" onclick="setSessionTool(${idx},'path')">경로</button>
+      <button class="tool-btn" id="${sid}-tool-start" onclick="setSessionTool(${idx},'start')">시작 S</button>
+      <button class="tool-btn" id="${sid}-tool-end" onclick="setSessionTool(${idx},'end')">종료 E</button>
+      <button class="tool-btn" id="${sid}-tool-turn" onclick="setSessionTool(${idx},'turn')">전환 T</button>
+      <button class="tool-btn" id="${sid}-tool-erase" onclick="setSessionTool(${idx},'erase')">지우개</button>
+      <button class="tool-btn" onclick="clearSessionMap(${idx})">경로 지우기</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--muted);font-weight:600;flex-shrink:0">마커</span>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="tool-btn" onclick="setSessionTool(${idx},'dog')" style="font-size:14px;padding:3px 7px">🐶</button>
+        <button class="tool-btn" onclick="setSessionTool(${idx},'man')" style="font-size:14px;padding:3px 7px">🧍‍♂️</button>
+        <button class="tool-btn" onclick="setSessionTool(${idx},'woman')" style="font-size:14px;padding:3px 7px">🧍‍♀️</button>
+        <button class="tool-btn" onclick="setSessionTool(${idx},'boy')" style="font-size:12px;padding:4px 8px">🧒파랑</button>
+        <button class="tool-btn" onclick="setSessionTool(${idx},'girl')" style="font-size:12px;padding:4px 8px">🧒핑크</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--muted);font-weight:600">펜색</span>
+      <div style="display:flex;gap:5px">
+        <div style="width:24px;height:24px;border-radius:50%;background:#185FA5;cursor:pointer;border:2.5px solid #1a1a2e" onclick="setSessionColor(${idx},'#185FA5',this)"></div>
+        <div style="width:24px;height:24px;border-radius:50%;background:#FF3B30;cursor:pointer;border:2.5px solid transparent" onclick="setSessionColor(${idx},'#FF3B30',this)"></div>
+        <div style="width:24px;height:24px;border-radius:50%;background:#FFCC00;cursor:pointer;border:2.5px solid transparent" onclick="setSessionColor(${idx},'#FFCC00',this)"></div>
+        <div style="width:24px;height:24px;border-radius:50%;background:#1D9E75;cursor:pointer;border:2.5px solid transparent" onclick="setSessionColor(${idx},'#1D9E75',this)"></div>
+        <div style="width:24px;height:24px;border-radius:50%;background:#FF6B00;cursor:pointer;border:2.5px solid transparent" onclick="setSessionColor(${idx},'#FF6B00',this)"></div>
+        <div style="width:24px;height:24px;border-radius:50%;background:#fff;cursor:pointer;border:2px solid #ccc" onclick="setSessionColor(${idx},'#FFFFFF',this)"></div>
+        <div style="width:24px;height:24px;border-radius:50%;background:#000;cursor:pointer;border:2.5px solid transparent" onclick="setSessionColor(${idx},'#000000',this)"></div>
+      </div>
+      <span style="font-size:12px;color:var(--muted);font-weight:600;margin-left:4px">굵기</span>
+      <input type="range" min="1" max="10" value="3" style="width:60px;padding:0" oninput="sessions[${idx}].penSize=parseInt(this.value)">
+    </div>
+    <div class="map-scroll">
+      <canvas id="${sid}-canvas" width="700" height="450"></canvas>
+    </div>
+
+    <!-- 유튜브 -->
+    <span class="flabel" style="margin-top:12px">유튜브 URL</span>
+    <input id="${sid}-youtube" type="url" placeholder="https://youtube.com/watch?v=...">
+
+    <!-- 결과 -->
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 8px">결과 (Outcome)</div>
+    <span class="flabel">Reward (보상)</span>
+    <input id="${sid}-reward" type="text" placeholder="예: 장난감, 간식, 칭찬...">
+    <span class="flabel">FTR (Final Trained Response)</span>
+    <input id="${sid}-ftr" type="text" placeholder="예: 앉기, 짖기, 눕기...">
+    <span class="flabel">Were objectives met?</span>
+    <div class="yn-group">
+      <div class="yn-btn" id="${sid}-met-yes" onclick="setSessionYN(${idx},'met','yes')">Yes — 달성 ✓</div>
+      <div class="yn-btn" id="${sid}-met-no" onclick="setSessionYN(${idx},'met','no')">No — 미달성 ✗</div>
+    </div>
+    <div id="${sid}-met-note-wrap" style="display:none;margin-top:8px">
+      <input id="${sid}-met-note" type="text" placeholder="미달성 사유...">
+    </div>
+
+    <!-- 복기 메모 -->
+    <span class="flabel" style="margin-top:12px">훈련 리뷰 & 복기 메모</span>
+    <textarea id="${sid}-notes" style="min-height:100px" placeholder="개의 행동, 관찰 사항, 개선점, 복기 내용..."></textarea>
+  </div>`;
+}
+
+// 회차 상태 초기화
+function initSessionState(idx) {
+  sessions[idx] = {
+    blind: '', dot: '', indoor: '', met: '',
+    penColor: '#185FA5', penSize: 3,
+    mapPaths: [], mapPoints: [], mapBgImage: null,
+    isDrawing: false, currentPath: [], mapTool: 'path'
+  };
+}
+
+function renderSessionTabs() {
+  const tabs = document.getElementById('session-tabs');
+  tabs.innerHTML = sessions.map((s,i) => `
+    <button onclick="switchSession(${i})" style="padding:7px 16px;font-size:13px;font-weight:600;border:1.5px solid ${i===activeSession?'var(--blue)':'var(--border)'};border-radius:999px;background:${i===activeSession?'var(--blue-light)':'var(--bg)'};color:${i===activeSession?'var(--blue-dark)':'var(--muted)'};cursor:pointer">
+      ${i+1}차
+    </button>`).join('');
+}
+
+function switchSession(idx) {
+  // 현재 캔버스 상태 저장
+  saveCurrentCanvasState();
+  activeSession = idx;
+  // 폼 전환
+  document.querySelectorAll('.session-form').forEach((f,i)=>{
+    f.style.display = i===idx ? 'block' : 'none';
+  });
+  renderSessionTabs();
+  // 해당 회차 캔버스 초기화
+  setTimeout(()=>initSessionCanvas(idx), 50);
+}
+
+function addSession() {
+  if (sessions.length >= 6) { showToast('최대 6차까지 추가 가능해요'); return; }
+  const idx = sessions.length;
+  initSessionState(idx);
+  const forms = document.getElementById('session-forms');
+  forms.insertAdjacentHTML('beforeend', sessionFormHTML(idx));
+  renderSessionTabs();
+  switchSession(idx);
+}
+
+function removeSession() {
+  if (sessions.length <= 1) { showToast('최소 1차는 있어야 해요'); return; }
+  const idx = sessions.length - 1;
+  sessions.splice(idx, 1);
+  document.getElementById(`sf-${idx}`)?.remove();
+  renderSessionTabs();
+  switchSession(Math.min(activeSession, sessions.length-1));
+}
+
+function saveCurrentCanvasState() {
+  const s = sessions[activeSession]; if(!s) return;
+  s.mapPaths = mapPaths.slice();
+  s.mapPoints = mapPoints.slice();
+  s.mapBgImage = mapBgImage;
+}
+
+function initSessionCanvas(idx) {
+  const s = sessions[idx]; if(!s) return;
+  const sid = `s${idx}`;
+  const cv = document.getElementById(`${sid}-canvas`); if(!cv) return;
+  cv.width = 700; cv.height = 450;
+  // 전역 canvas/ctx를 이 회차 캔버스로 설정
+  switchActiveCanvas(idx);
+  redrawMap();
+}
+
+function switchActiveCanvas(idx) {
+  const sid = `s${idx}`;
+  const cv = document.getElementById(`${sid}-canvas`); if(!cv) return;
+  const s = sessions[idx];
+  // 전역 상태를 이 회차 데이터로 교체
+  mapPaths = s.mapPaths;
+  mapPoints = s.mapPoints;
+  mapBgImage = s.mapBgImage;
+  mapTool = s.mapTool || 'path';
+  penColor = s.penColor || '#185FA5';
+  penSize = s.penSize || 3;
+  // 전역 canvas 재지정
+  window._activeCanvas = cv;
+  window._activeCtx = cv.getContext('2d');
+}
+
+function setSessionTool(idx, t) {
+  if (activeSession === idx) {
+    setTool(t);
+    sessions[idx].mapTool = t;
+  }
+}
+function setSessionColor(idx, color, el) {
+  sessions[idx].penColor = color;
+  if (activeSession === idx) {
+    penColor = color;
+    // 색상 버튼 활성 표시
+    const sid = `s${idx}`;
+    el.closest('.card').querySelectorAll('[onclick*="setSessionColor"]').forEach(b=>b.style.borderColor='transparent');
+    el.style.borderColor = 'var(--text)';
+  }
+}
+function clearSessionMap(idx) {
+  if (activeSession === idx) {
+    mapPaths = []; mapPoints = [];
+    sessions[idx].mapPaths = [];
+    sessions[idx].mapPoints = [];
+    redrawMap();
+  }
+}
+function loadSessionMapBg(input, idx) {
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      sessions[idx].mapBgImage = img;
+      const sid = `s${idx}`;
+      document.getElementById(`${sid}-map-bg-btn`).innerHTML = '✓ '+file.name.substring(0,20);
+      document.getElementById(`${sid}-map-bg-btn`).style.borderColor = 'var(--green)';
+      document.getElementById(`${sid}-map-bg-remove`).style.display = 'block';
+      if (activeSession === idx) { mapBgImage = img; redrawMap(); }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function removeSessionMapBg(idx) {
+  sessions[idx].mapBgImage = null;
+  const sid = `s${idx}`;
+  document.getElementById(`${sid}-map-bg-input`).value = '';
+  document.getElementById(`${sid}-map-bg-btn`).innerHTML = '🖼️ 배경 이미지 설정';
+  document.getElementById(`${sid}-map-bg-btn`).style.borderColor = 'var(--border)';
+  document.getElementById(`${sid}-map-bg-remove`).style.display = 'none';
+  if (activeSession === idx) { mapBgImage = null; redrawMap(); }
+}
+function toggleSession(idx, group, val, el) {
+  const s = sessions[idx]; if(!s) return;
+  if (!s.state) s.state = {};
+  s.state[group] = (s.state[group]===val)?'':val;
+  const grpEl = document.getElementById(`s${idx}-${group}-group`);
+  if(grpEl) grpEl.querySelectorAll('.bg-btn').forEach(b=>b.classList.remove('sel'));
+  if(s.state[group]) el.classList.add('sel');
+}
+function setSessionYN(idx, name, val) {
+  const s = sessions[idx]; if(!s) return;
+  if (!s.state) s.state = {};
+  s.state[name] = val;
+  const sid = `s${idx}`;
+  if(name==='dot') {
+    document.getElementById(`${sid}-dot-yes`).className='yn-btn'+(val==='yes'?' yes':'');
+    document.getElementById(`${sid}-dot-no`).className='yn-btn'+(val==='no'?' no':'');
+    document.getElementById(`${sid}-dot-note-wrap`).style.display=val==='no'?'block':'none';
+  } else if(name==='met') {
+    document.getElementById(`${sid}-met-yes`).className='yn-btn'+(val==='yes'?' yes':'');
+    document.getElementById(`${sid}-met-no`).className='yn-btn'+(val==='no'?' no':'');
+    document.getElementById(`${sid}-met-note-wrap`).style.display=val==='no'?'block':'none';
+  } else if(name==='indoor') {
+    document.getElementById(`${sid}-indoor-yes`).className='yn-btn'+(val==='yes'?' yes':'');
+    document.getElementById(`${sid}-indoor-no`).className='yn-btn'+(val==='no'?' yes':'');
+  }
+}
+
+function gs(idx, field) {
+  return (document.getElementById(`s${idx}-${field}`)||{}).value||'';
+}
+
+function getSessionData(idx) {
+  saveCurrentCanvasState();
+  const s = sessions[idx];
+  const st = s.state || {};
+  const cv = document.getElementById(`s${idx}-canvas`);
+  return {
+    age: gs(idx,'age'), length: gs(idx,'length'), turns: gs(idx,'turns'),
+    scent: gs(idx,'scent'), trailtime: gs(idx,'trailtime'),
+    blind: st.blind||'', dot: st.dot||'', dotNote: gs(idx,'dot-note'),
+    weather: gs(idx,'weather'), temp: gs(idx,'temp'), humidity: gs(idx,'humidity'),
+    wind: gs(idx,'wind'), winddir: gs(idx,'winddir'),
+    indoor: st.indoor||'', env: gs(idx,'env'),
+    youtube: gs(idx,'youtube'),
+    reward: gs(idx,'reward'), ftr: gs(idx,'ftr'),
+    met: st.met||'', metNote: gs(idx,'met-note'),
+    notes: gs(idx,'notes'),
+    mapImg: cv ? cv.toDataURL('image/jpeg',0.7) : ''
+  };
+}
+
+function initSessions() {
+  sessions = [];
+  initSessionState(0);
+  const forms = document.getElementById('session-forms');
+  forms.innerHTML = sessionFormHTML(0);
+  activeSession = 0;
+  renderSessionTabs();
+  setTimeout(()=>initSessionCanvas(0), 100);
+}
+let isDrawing = false;
+let mapPaths = [], currentPath = [], mapPoints = [];
+let mapBgImage = null;
+let penColor = '#185FA5';
+let penSize = 3;
+let autoIdDebounce = null;
+
+// ======== CANVAS ========
+// canvas는 동적으로 활성 회차 캔버스를 가리킴
+let canvas = null;
+let ctx = null;
+
+function getActiveCanvas() {
+  return window._activeCanvas || document.getElementById('s0-canvas');
+}
+function getActiveCtx() {
+  return window._activeCtx || (getActiveCanvas()?.getContext('2d'));
+}
+
+function initCanvas() {
+  // 세션 시스템으로 대체됨 — initSessions에서 처리
+}
+
+function redrawMap() {
+  const cv = getActiveCanvas();
+  const c = getActiveCtx();
+  if (!cv || !c) return;
+  const W = cv.width, H = cv.height;
+  if (mapBgImage) {
+    c.clearRect(0, 0, W, H);
+    c.drawImage(mapBgImage, 0, 0, W, H);
+    c.fillStyle = 'rgba(255,255,255,0.06)';
+    c.fillRect(0, 0, W, H);
+  } else {
+    c.fillStyle = '#dce8d8';
+    c.fillRect(0, 0, W, H);
+    c.strokeStyle = '#c4d8be'; c.lineWidth = 0.5;
+    for (let x = 0; x < W; x += 40) { c.beginPath(); c.moveTo(x,0); c.lineTo(x,H); c.stroke(); }
+    for (let y = 0; y < H; y += 40) { c.beginPath(); c.moveTo(0,y); c.lineTo(W,y); c.stroke(); }
+  }
+  mapPaths.forEach(p => {
+    if (p.length < 2) return;
+    const color = p.color || '#185FA5';
+    const size = p.size || 2.5;
+    if (mapBgImage) {
+      c.strokeStyle = 'rgba(255,255,255,0.4)'; c.lineWidth = size + 2;
+      c.lineCap = 'round'; c.lineJoin = 'round';
+      c.beginPath(); c.moveTo(p[0].x, p[0].y); p.forEach(pt => c.lineTo(pt.x, pt.y)); c.stroke();
+    }
+    c.strokeStyle = color;
+    c.lineWidth = size; c.lineCap = 'round'; c.lineJoin = 'round';
+    c.beginPath(); c.moveTo(p[0].x, p[0].y); p.forEach(pt => c.lineTo(pt.x, pt.y)); c.stroke();
+  });
+  mapPoints.forEach(pt => {
+    const customTypes = ['dog','man','woman','boy','girl'];
+    if (customTypes.includes(pt.type)) {
+      c.save(); c.translate(pt.x, pt.y); drawMarkerIcon(c, pt.type); c.restore();
+    } else {
+      const cfg = {start:{c:'#1D9E75',l:'S'},end:{c:'#D85A30',l:'E'},turn:{c:'#BA7517',l:'T'},marker:{c:'#533AB7',l:'●'}}[pt.type]||{c:'#888',l:'?'};
+      c.fillStyle='rgba(255,255,255,0.85)'; c.beginPath(); c.arc(pt.x,pt.y,13,0,Math.PI*2); c.fill();
+      c.fillStyle=cfg.c; c.beginPath(); c.arc(pt.x,pt.y,11,0,Math.PI*2); c.fill();
+      c.fillStyle='#fff'; c.font='bold 10px sans-serif'; c.textAlign='center'; c.textBaseline='middle';
+      c.fillText(cfg.l,pt.x,pt.y);
+    }
+  });
+}
+
+function drawMarkerIcon(ctx, type) {
+  // 흰 배경 원
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.stroke();
+
+  if (type === 'dog') {
+    // 잭러셀테리어 전신 - 흰바탕에 갈색 반점, 하네스
+    // 뒷다리
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-5, 6); ctx.bezierCurveTo(-7, 10, -8, 14, -7, 18); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(5, 6); ctx.bezierCurveTo(7, 10, 8, 14, 7, 18); ctx.stroke();
+    // 발
+    ctx.fillStyle = '#f5f0e8';
+    ctx.beginPath(); ctx.ellipse(-7, 18, 3, 2, 0.2, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#555'; ctx.lineWidth=0.8; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(7, 18, 3, 2, -0.2, 0, Math.PI*2); ctx.fill();
+    ctx.stroke();
+    // 몸통 (타원형, 납작하게)
+    ctx.fillStyle = '#f5f0e8';
+    ctx.beginPath(); ctx.ellipse(0, 5, 11, 8, 0, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 1; ctx.stroke();
+    // 몸통 갈색 반점
+    ctx.fillStyle = '#8B5E3C';
+    ctx.beginPath(); ctx.ellipse(3, 3, 7, 5, 0.3, 0, Math.PI*2); ctx.fill();
+    // 앞다리
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-6, 9); ctx.lineTo(-7, 18); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(6, 9); ctx.lineTo(7, 18); ctx.stroke();
+    // 앞발
+    ctx.fillStyle = '#f5f0e8';
+    ctx.beginPath(); ctx.ellipse(-7, 18, 3, 2, 0.1, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#555'; ctx.lineWidth=0.8; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(7, 18, 3, 2, -0.1, 0, Math.PI*2); ctx.fill();
+    ctx.stroke();
+    // 꼬리 (위로 세워진)
+    ctx.strokeStyle = '#8B5E3C'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(10, 2); ctx.quadraticCurveTo(16, -4, 13, -10); ctx.stroke();
+    // 하네스
+    ctx.strokeStyle = '#FF6B00'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-9, 2); ctx.lineTo(9, 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, -2); ctx.lineTo(0, 7); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 2, 8, Math.PI+0.3, -0.3); ctx.stroke();
+    // 목
+    ctx.fillStyle = '#f5f0e8';
+    ctx.beginPath(); ctx.ellipse(0, -5, 5, 4, 0, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#555'; ctx.lineWidth=0.8; ctx.stroke();
+    // 머리 (크고 둥글게)
+    ctx.fillStyle = '#f5f0e8';
+    ctx.beginPath(); ctx.ellipse(0, -13, 9, 8, 0, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 1; ctx.stroke();
+    // 머리 갈색 반점 (왼쪽)
+    ctx.fillStyle = '#8B5E3C';
+    ctx.beginPath(); ctx.ellipse(-4, -14, 4, 5, -0.2, 0, Math.PI*2); ctx.fill();
+    // 귀 (늘어진 삼각형 귀)
+    ctx.fillStyle = '#8B5E3C';
+    ctx.beginPath();
+    ctx.moveTo(-7, -17); ctx.quadraticCurveTo(-12, -14, -10, -8);
+    ctx.quadraticCurveTo(-7, -10, -6, -14); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='#555'; ctx.lineWidth=0.7; ctx.stroke();
+    ctx.fillStyle = '#f5f0e8';
+    ctx.beginPath();
+    ctx.moveTo(7, -17); ctx.quadraticCurveTo(12, -14, 10, -8);
+    ctx.quadraticCurveTo(7, -10, 6, -14); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='#555'; ctx.lineWidth=0.7; ctx.stroke();
+    // 주둥이 (볼록하게)
+    ctx.fillStyle = '#f5f0e8';
+    ctx.beginPath(); ctx.ellipse(2, -10, 5, 4, 0.1, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#555'; ctx.lineWidth=0.8; ctx.stroke();
+    // 코 (크고 동그랗게)
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.ellipse(3, -11, 3, 2.5, 0, 0, Math.PI*2); ctx.fill();
+    // 콧구멍 하이라이트
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath(); ctx.arc(2, -12, 0.8, 0, Math.PI*2); ctx.fill();
+    // 눈 (크고 동그랗게)
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.arc(-3, -15, 2.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(5, -15, 2.5, 0, Math.PI*2); ctx.fill();
+    // 눈 하이라이트
+    ctx.fillStyle = 'white';
+    ctx.beginPath(); ctx.arc(-2, -16, 0.9, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(6, -16, 0.9, 0, Math.PI*2); ctx.fill();
+    // 입
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(0, -8); ctx.quadraticCurveTo(2, -6, 4, -8); ctx.stroke();
+
+  } else if (type === 'man') {
+    // 성인 남성 전신 - 검정 머리
+    // 다리
+    ctx.fillStyle = '#3a5a8a';
+    ctx.fillRect(-6, 6, 5, 12); ctx.fillRect(1, 6, 5, 12);
+    // 신발
+    ctx.fillStyle = '#222';
+    ctx.fillRect(-7, 17, 6, 3); ctx.fillRect(0, 17, 6, 3);
+    // 몸통
+    ctx.fillStyle = '#4a7fc1';
+    ctx.beginPath(); ctx.roundRect(-8, -4, 16, 12, 2); ctx.fill();
+    // 팔
+    ctx.fillStyle = '#4a7fc1';
+    ctx.fillRect(-13, -4, 5, 10); ctx.fillRect(8, -4, 5, 10);
+    // 손
+    ctx.fillStyle = '#FDBCB4';
+    ctx.beginPath(); ctx.arc(-10, 7, 3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(11, 7, 3, 0, Math.PI*2); ctx.fill();
+    // 목
+    ctx.fillStyle = '#FDBCB4';
+    ctx.fillRect(-3, -8, 6, 5);
+    // 머리
+    ctx.fillStyle = '#FDBCB4';
+    ctx.beginPath(); ctx.ellipse(0, -13, 7, 8, 0, 0, Math.PI*2); ctx.fill();
+    // 검정 머리카락
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath(); ctx.ellipse(0, -18, 7, 4, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-6, -14, 2, 5, -0.3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(6, -14, 2, 5, 0.3, 0, Math.PI*2); ctx.fill();
+    // 눈
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.arc(-3, -13, 1, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(3, -13, 1, 0, Math.PI*2); ctx.fill();
+
+  } else if (type === 'woman') {
+    // 성인 여성 전신 - 검정 머리
+    // 치마
+    ctx.fillStyle = '#c14a7f';
+    ctx.beginPath(); ctx.moveTo(-8, 4); ctx.lineTo(-10, 18); ctx.lineTo(10, 18); ctx.lineTo(8, 4); ctx.closePath(); ctx.fill();
+    // 다리
+    ctx.fillStyle = '#FDBCB4';
+    ctx.fillRect(-5, 16, 4, 5); ctx.fillRect(1, 16, 4, 5);
+    // 신발
+    ctx.fillStyle = '#222';
+    ctx.fillRect(-6, 20, 5, 2); ctx.fillRect(0, 20, 5, 2);
+    // 몸통
+    ctx.fillStyle = '#e06ba0';
+    ctx.beginPath(); ctx.roundRect(-7, -4, 14, 10, 2); ctx.fill();
+    // 팔
+    ctx.fillStyle = '#e06ba0';
+    ctx.fillRect(-11, -4, 4, 9); ctx.fillRect(7, -4, 4, 9);
+    // 손
+    ctx.fillStyle = '#FDBCB4';
+    ctx.beginPath(); ctx.arc(-9, 6, 2.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(9, 6, 2.5, 0, Math.PI*2); ctx.fill();
+    // 목
+    ctx.fillStyle = '#FDBCB4';
+    ctx.fillRect(-3, -8, 6, 5);
+    // 머리
+    ctx.fillStyle = '#FDBCB4';
+    ctx.beginPath(); ctx.ellipse(0, -13, 7, 8, 0, 0, Math.PI*2); ctx.fill();
+    // 검정 긴 머리
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath(); ctx.ellipse(0, -18, 7, 4, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-7, -12, 2.5, 8, -0.2, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(7, -12, 2.5, 8, 0.2, 0, Math.PI*2); ctx.fill();
+    // 눈
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.arc(-3, -13, 1, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(3, -13, 1, 0, Math.PI*2); ctx.fill();
+
+  } else if (type === 'boy') {
+    // 남자 아이 - 파랑, 성인의 절반 크기
+    ctx.scale(0.5, 0.5);
+    // 흰 배경 원
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.stroke();
+    // 다리
+    ctx.fillStyle = '#3a5a8a';
+    ctx.fillRect(-6, 6, 5, 12); ctx.fillRect(1, 6, 5, 12);
+    // 신발
+    ctx.fillStyle = '#222';
+    ctx.fillRect(-7, 17, 6, 3); ctx.fillRect(0, 17, 6, 3);
+    // 몸통
+    ctx.fillStyle = '#5b9bd5';
+    ctx.beginPath(); ctx.roundRect(-8, -4, 16, 12, 2); ctx.fill();
+    // 팔
+    ctx.fillStyle = '#5b9bd5';
+    ctx.fillRect(-13, -4, 5, 10); ctx.fillRect(8, -4, 5, 10);
+    // 손
+    ctx.fillStyle = '#FDBCB4';
+    ctx.beginPath(); ctx.arc(-10, 7, 3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(11, 7, 3, 0, Math.PI*2); ctx.fill();
+    // 목
+    ctx.fillStyle = '#FDBCB4';
+    ctx.fillRect(-3, -8, 6, 5);
+    // 머리
+    ctx.fillStyle = '#FDBCB4';
+    ctx.beginPath(); ctx.ellipse(0, -13, 8, 8, 0, 0, Math.PI*2); ctx.fill();
+    // 검정 짧은 머리
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath(); ctx.ellipse(0, -18, 8, 5, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-7, -15, 2, 5, -0.2, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(7, -15, 2, 5, 0.2, 0, Math.PI*2); ctx.fill();
+    // 눈
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.arc(-3, -13, 1.2, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(3, -13, 1.2, 0, Math.PI*2); ctx.fill();
+
+  } else if (type === 'girl') {
+    // 여자 아이 - 핑크, 성인의 절반 크기
+    ctx.scale(0.5, 0.5);
+    // 흰 배경 원
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.stroke();
+    // 치마
+    ctx.fillStyle = '#e87ab0';
+    ctx.beginPath(); ctx.moveTo(-8, 4); ctx.lineTo(-10, 18); ctx.lineTo(10, 18); ctx.lineTo(8, 4); ctx.closePath(); ctx.fill();
+    // 다리
+    ctx.fillStyle = '#FDBCB4';
+    ctx.fillRect(-5, 16, 4, 5); ctx.fillRect(1, 16, 4, 5);
+    // 신발
+    ctx.fillStyle = '#222';
+    ctx.fillRect(-6, 20, 5, 2); ctx.fillRect(0, 20, 5, 2);
+    // 몸통
+    ctx.fillStyle = '#f0a0c8';
+    ctx.beginPath(); ctx.roundRect(-7, -4, 14, 9, 2); ctx.fill();
+    // 팔
+    ctx.fillStyle = '#f0a0c8';
+    ctx.fillRect(-11, -4, 4, 9); ctx.fillRect(7, -4, 4, 9);
+    // 손
+    ctx.fillStyle = '#FDBCB4';
+    ctx.beginPath(); ctx.arc(-9, 6, 2.5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(9, 6, 2.5, 0, Math.PI*2); ctx.fill();
+    // 목
+    ctx.fillStyle = '#FDBCB4';
+    ctx.fillRect(-3, -8, 6, 5);
+    // 머리
+    ctx.fillStyle = '#FDBCB4';
+    ctx.beginPath(); ctx.ellipse(0, -13, 8, 8, 0, 0, Math.PI*2); ctx.fill();
+    // 검정 긴 머리 + 양갈래
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath(); ctx.ellipse(0, -18, 8, 5, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-8, -12, 2.5, 9, -0.1, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(8, -12, 2.5, 9, 0.1, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-8, -4, 3, 3, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(8, -4, 3, 3, 0, 0, Math.PI*2); ctx.fill();
+    // 눈
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.arc(-3, -13, 1.2, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(3, -13, 1.2, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+function getPos(e, cv) {
+  cv = cv || getActiveCanvas();
+  const r = cv.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return { x: (src.clientX-r.left)*(cv.width/r.width), y: (src.clientY-r.top)*(cv.height/r.height) };
+}
+
+// 이벤트는 document에 위임 — 활성 회차 캔버스에만 적용
+document.addEventListener('touchstart', e => {
+  const cv = getActiveCanvas();
+  if (e.target === cv) { e.preventDefault(); hDown(getPos(e, cv)); }
+}, {passive:false});
+document.addEventListener('touchmove', e => {
+  const cv = getActiveCanvas();
+  if (e.target === cv) { e.preventDefault(); hMove(getPos(e, cv)); }
+}, {passive:false});
+document.addEventListener('touchend', e => {
+  if (e.target === getActiveCanvas()) { isDrawing=false; currentPath=[]; }
+});
+document.addEventListener('mousedown', e => {
+  if (e.target === getActiveCanvas()) hDown(getPos(e, getActiveCanvas()));
+});
+document.addEventListener('mousemove', e => {
+  if (isDrawing && e.target === getActiveCanvas()) hMove(getPos(e, getActiveCanvas()));
+});
+document.addEventListener('mouseup', () => { isDrawing=false; currentPath=[]; });
+
+function hDown(pos) {
+  if (mapTool==='path') {
+    isDrawing=true;
+    currentPath=[pos];
+    currentPath.color = penColor;
+    currentPath.size = penSize;
+    mapPaths.push(currentPath);
+  }
+  else if (['start','end','turn'].includes(mapTool)) { mapPoints=mapPoints.filter(p=>p.type!==mapTool); mapPoints.push({...pos,type:mapTool}); redrawMap(); }
+  else if (['marker','dog','man','woman','boy','girl'].includes(mapTool)) { mapPoints.push({...pos,type:mapTool}); redrawMap(); }
+  else if (mapTool==='erase') { isDrawing=true; eraseNear(pos); }
+}
+function hMove(pos) {
+  if (!isDrawing) return;
+  if (mapTool==='path') { currentPath.push(pos); redrawMap(); }
+  else if (mapTool==='erase') eraseNear(pos);
+}
+function eraseNear(pos) {
+  const d=(a,b)=>Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2);
+  mapPaths=mapPaths.filter(p=>!p.some(pt=>d(pt,pos)<16));
+  mapPoints=mapPoints.filter(pt=>d(pt,pos)>16);
+  redrawMap();
+}
+function setTool(t) {
+  mapTool=t;
+  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+  const el=document.getElementById('tool-'+t); if(el) el.classList.add('active');
+}
+function setColor(color, el) {
+  penColor = color;
+  document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active-color'));
+  el.classList.add('active-color');
+  if (mapTool !== 'path') setTool('path');
+}
+function clearMap() {
+  mapPaths=[]; mapPoints=[];
+  if(sessions[activeSession]) { sessions[activeSession].mapPaths=[]; sessions[activeSession].mapPoints=[]; }
+  redrawMap();
+}
+
+function loadMapBg(input) { loadSessionMapBg(input, activeSession); }
+function removeMapBg() { removeSessionMapBg(activeSession); }
+
+// ======== 날씨 자동 조회 ========
+async function fetchWeather(sessionIdx) {
+  const date = g('f-date');
+  const time = g('f-tod');
+  const address = g('f-address').trim();
+  const location = g('f-location').trim();
+  const searchQuery = address || location;
+
+  if (!date || !searchQuery) {
+    showToast('날짜와 장소(또는 상세 주소)를 먼저 입력해 주세요');
+    return;
+  }
+
+  const idx = sessionIdx !== undefined ? sessionIdx : 0;
+  const sid = `s${idx}`;
+  const btn = document.getElementById(`weather-fetch-btn-${idx}`) || document.getElementById('weather-fetch-btn');
+  const status = document.getElementById(`weather-status-${idx}`) || document.getElementById('weather-status');
+  btn.textContent = '조회 중...'; btn.disabled = true;
+  status.style.display = 'block';
+  status.style.color = 'var(--muted)';
+  status.textContent = '📍 주소 좌표 검색 중...';
+
+  try {
+    // 1단계: 상세주소 → 정확한 좌표 (Nominatim - OpenStreetMap, 동/읍 단위까지 지원)
+    let latitude, longitude, foundName;
+
+    // Nominatim은 한국 상세주소에 더 정확해요
+    const nominatimRes = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1&countrycodes=kr&addressdetails=1`,
+      { headers: { 'Accept-Language': 'ko' } }
+    );
+    const nominatimData = await nominatimRes.json();
+
+    if (nominatimData && nominatimData.length > 0) {
+      latitude = parseFloat(nominatimData[0].lat);
+      longitude = parseFloat(nominatimData[0].lon);
+      foundName = nominatimData[0].display_name.split(',').slice(0,3).join(', ');
+    } else {
+      // Nominatim 실패 시 Open-Meteo Geocoding으로 fallback
+      const geoRes = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchQuery)}&count=1&language=ko&format=json`
+      );
+      const geoData = await geoRes.json();
+      if (!geoData.results || geoData.results.length === 0) {
+        status.style.color = 'var(--red)';
+        status.textContent = '❌ 주소를 찾을 수 없어요. 더 구체적으로 입력해 보세요.\n예: 경기도 수원시 팔달구 매교동';
+        btn.textContent = '🌤 자동 조회'; btn.disabled = false;
+        return;
+      }
+      latitude = geoData.results[0].latitude;
+      longitude = geoData.results[0].longitude;
+      foundName = `${geoData.results[0].name}, ${geoData.results[0].country}`;
+    }
+
+    status.textContent = `📍 ${foundName} (${latitude.toFixed(4)}, ${longitude.toFixed(4)}) 날씨 불러오는 중...`;
+
+    // 시간 처리
+    const hour = time ? parseInt(time.split(':')[0]) : 12;
+
+    // 2단계: 날씨 데이터 조회
+    const today = new Date().toISOString().split('T')[0];
+    const isHistory = date < today;
+
+    let weatherUrl;
+    if (isHistory) {
+      weatherUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${latitude}&longitude=${longitude}&start_date=${date}&end_date=${date}&hourly=temperature_2m,relativehumidity_2m,windspeed_10m,winddirection_10m,weathercode&timezone=auto&windspeed_unit=ms`;
+    } else {
+      weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&start_date=${date}&end_date=${date}&hourly=temperature_2m,relativehumidity_2m,windspeed_10m,winddirection_10m,weathercode&timezone=auto&windspeed_unit=ms`;
+    }
+
+    const weatherRes = await fetch(weatherUrl);
+    const weatherData = await weatherRes.json();
+    if (!weatherData.hourly) throw new Error('날씨 데이터 없음');
+
+    const h = weatherData.hourly;
+    const temp = h.temperature_2m[hour];
+    const humidity = h.relativehumidity_2m[hour];
+    const windspeed = h.windspeed_10m[hour];
+    const winddir = h.winddirection_10m[hour];
+    const wcode = h.weathercode[hour];
+
+    function degToDir(deg) {
+      const dirs = ['N','NE','E','SE','S','SW','W','NW'];
+      return dirs[Math.round(deg/45)%8];
+    }
+    function wcodeToText(code) {
+      if (code===0) return '맑음 Clear';
+      if (code<=3) return '흐림 Cloudy';
+      if (code<=49) return '안개 Fog';
+      if (code<=67) return '비 Rain';
+      if (code<=77) return '눈 Snow';
+      if (code<=82) return '비 Rain';
+      if (code<=99) return '바람 Windy';
+      return '흐림 Cloudy';
+    }
+
+    // 회차별 필드에 입력
+    const setField = (field, val) => {
+      const el = document.getElementById(`${sid}-${field}`) || document.getElementById(`f-${field}`);
+      if (el) el.value = val;
+    };
+
+    setField('temp', Math.round(temp*10)/10);
+    setField('humidity', Math.round(humidity));
+    setField('wind', Math.round(windspeed*10)/10);
+    setField('winddir', degToDir(winddir));
+
+    const weatherText = wcodeToText(wcode);
+    const weatherSel = document.getElementById(`${sid}-weather`) || document.getElementById('f-weather');
+    if (weatherSel) weatherSel.value = weatherText;
+
+    status.style.color = '#0F6E56';
+    status.textContent = `✓ ${foundName} · ${date} ${hour}시 날씨 자동 입력 완료!`;
+
+  } catch(err) {
+    status.style.color = 'var(--red)';
+    status.textContent = '❌ 날씨 조회 실패. 인터넷 연결을 확인하거나 직접 입력해 주세요.';
+    console.error(err);
+  }
+
+  btn.textContent = '🌤 자동 조회'; btn.disabled = false;
+}
+
+// ======== TOGGLE BUTTONS ========
+function toggleSingle(group, val, el) {
+  const prev = selState[group];
+  selState[group] = (prev === val) ? '' : val;
+  const grpEl = document.getElementById(group+'-group');
+  if (grpEl) grpEl.querySelectorAll('.bg-btn').forEach(b => b.classList.remove('sel'));
+  if (selState[group]) el.classList.add('sel');
+}
+
+function setYN(name, val) {
+  ynState[name] = val;
+  if (name==='dot') {
+    document.getElementById('dot-yes').className='yn-btn'+(val==='yes'?' yes':'');
+    document.getElementById('dot-no').className='yn-btn'+(val==='no'?' no':'');
+    document.getElementById('dot-note-wrap').style.display=val==='no'?'block':'none';
+  } else if (name==='met') {
+    document.getElementById('met-yes').className='yn-btn'+(val==='yes'?' yes':'');
+    document.getElementById('met-no').className='yn-btn'+(val==='no'?' no':'');
+    document.getElementById('met-note-wrap').style.display=val==='no'?'block':'none';
+  } else if (name==='indoor') {
+    document.getElementById('indoor-yes').className='yn-btn'+(val==='yes'?' yes':'');
+    document.getElementById('indoor-no').className='yn-btn'+(val==='no'?' yes':'');
+  }
+}
+
+// ======== AUTO ID ========
+function onK9Input() {
+  const name = document.getElementById('f-k9').value.trim();
+  const badge = document.getElementById('auto-id-badge');
+  if (!name) {
+    badge.className='id-badge loading';
+    badge.textContent='이름 입력 후 ID 자동 생성';
+    return;
+  }
+  badge.className='id-badge loading';
+  badge.innerHTML='계산 중<span class="spinner"></span>';
+  clearTimeout(autoIdDebounce);
+  autoIdDebounce = setTimeout(() => calcAutoId(name), 600);
+}
+
+function calcAutoId(name) {
+  const badge = document.getElementById('auto-id-badge');
+  // 로컬 entries에서 같은 견명 카운트
+  const count = entries.filter(e => e.k9 === name).length;
+  const num = String(count + 1).padStart(2, '0');
+  const id = '#' + name + num;
+  badge.className='id-badge';
+  badge.textContent = id;
+}
+
+function getCurrentAutoId() {
+  return document.getElementById('auto-id-badge').textContent || '';
+}
+
+// ======== SAVE ========
+function g(id) { return (document.getElementById(id)||{}).value||''; }
+
+async function saveEntry() {
+  const k9 = g('f-k9').trim();
+  const date = g('f-date');
+  if (!k9||!date) { showToast('견명과 날짜는 필수입니다'); return; }
+
+  // 현재 회차 캔버스 상태 저장
+  saveCurrentCanvasState();
+
+  const autoId = window._editingId ? entries.find(e=>e.id===window._editingId)?.autoId || getCurrentAutoId() : getCurrentAutoId();
+  const btn = document.getElementById('save-btn');
+  btn.textContent='저장 중...'; btn.disabled=true;
+
+  // 회차별 데이터 수집
+  const sessionData = sessions.map((s,i) => getSessionData(i));
+
+  const entry = {
+    id: window._editingId || Date.now(),
+    autoId, k9, handler: g('f-handler'),
+    type: selState.type, date, tod: g('f-tod'),
+    location: g('f-location'), address: g('f-address'),
+    objective: g('f-objective'),
+    sessions: sessionData,
+    // 1차 데이터를 기본값으로 (하위 호환)
+    age: sessionData[0]?.age, length: sessionData[0]?.length,
+    weather: sessionData[0]?.weather, temp: sessionData[0]?.temp,
+    met: sessionData[0]?.met, notes: sessionData[0]?.notes,
+    mapImg: sessionData[0]?.mapImg
+  };
+
+  if (window._editingId) {
+    const idx = entries.findIndex(e => e.id === window._editingId);
+    if (idx !== -1) entries[idx] = entry;
+    else entries.unshift(entry);
+    window._editingId = null;
+    btn.style.background = '';
+  } else {
+    entries.unshift(entry);
+  }
+  try { localStorage.setItem('dk_mt_v3', JSON.stringify(entries)); } catch(e) {}
+
+  resetForm();
+  btn.textContent='기록 저장하기'; btn.disabled=false;
+  switchTab('dashboard');
+  showToast('기록이 저장되었습니다! ✓');
+}
+
+function resetForm() {
+  ['f-k9','f-handler','f-location','f-address','f-objective']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-date','f-tod'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  selState={type:'',blind:''};
+  document.querySelectorAll('.bg-btn').forEach(b=>b.classList.remove('sel'));
+  ynState={dot:'',met:'',indoor:''};
+  const badge=document.getElementById('auto-id-badge');
+  if(badge){badge.className='id-badge loading'; badge.textContent='이름 입력 후 ID 자동 생성';}
+  window._editingId = null;
+  document.getElementById('save-btn').textContent = '기록 저장하기';
+  document.getElementById('save-btn').style.background = '';
+  // 회차 초기화
+  initSessions();
+}
+
+// ======== TABS ========
+function switchTab(t) {
+  ['dashboard','new','history'].forEach(id=>{
+    document.getElementById('panel-'+id).classList.toggle('active',id===t);
+    document.getElementById('nav-'+id).classList.toggle('active',id===t);
+  });
+  if(t==='dashboard') { renderDashboard(); }
+  if(t==='history') { renderHistory(); }
+  if(t==='new') {
+    // 수정 모드일 때는 initSessions() 호출 안 함 (데이터 덮어쓰기 방지)
+    if (!window._editingId) {
+      document.getElementById('f-date').valueAsDate=new Date();
+      initSessions();
+    }
+  }
+  window.scrollTo(0,0);
+}
+
+// ======== RENDER ========
+function renderDashboard() {
+  document.getElementById('m-total').textContent=entries.length;
+  const met=entries.filter(e=>e.met==='yes').length;
+  document.getElementById('m-met').textContent=entries.length?Math.round(met/entries.length*100)+'%':'-';
+  const ages=entries.filter(e=>e.age).map(e=>parseFloat(e.age));
+  document.getElementById('m-age').textContent=ages.length?Math.round(ages.reduce((a,b)=>a+b,0)/ages.length)+'m':'-';
+  const lens=entries.filter(e=>e.length).map(e=>parseFloat(e.length));
+  document.getElementById('m-len').textContent=lens.length?Math.round(lens.reduce((a,b)=>a+b,0)/lens.length)+'m':'-';
+  const el=document.getElementById('recent-list');
+  const recent=entries.slice(0,8);
+  el.innerHTML=recent.length?recent.map(logItemHTML).join(''):'<div class="empty"><div class="empty-icon"><svg width="80" height="80" viewBox="-20 -30 56 60" fill="none"><path d="M-5 6 C-7 10 -8 14 -7 18" stroke="#555" stroke-width="2.5" stroke-linecap="round"/><path d="M5 6 C7 10 8 14 7 18" stroke="#555" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="-7" cy="18" rx="3" ry="2" transform="rotate(10 -7 18)" fill="#f5f0e8" stroke="#555" stroke-width="0.8"/><ellipse cx="7" cy="18" rx="3" ry="2" transform="rotate(-10 7 18)" fill="#f5f0e8" stroke="#555" stroke-width="0.8"/><ellipse cx="0" cy="5" rx="11" ry="8" fill="#f5f0e8" stroke="#555" stroke-width="1"/><ellipse cx="3" cy="3" rx="7" ry="5" transform="rotate(10 3 3)" fill="#8B5E3C"/><line x1="-6" y1="9" x2="-7" y2="18" stroke="#555" stroke-width="2.5" stroke-linecap="round"/><line x1="6" y1="9" x2="7" y2="18" stroke="#555" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="-7" cy="18" rx="3" ry="2" fill="#f5f0e8" stroke="#555" stroke-width="0.8"/><ellipse cx="7" cy="18" rx="3" ry="2" fill="#f5f0e8" stroke="#555" stroke-width="0.8"/><path d="M10 2 Q16 -4 13 -10" stroke="#8B5E3C" stroke-width="2.5" stroke-linecap="round" fill="none"/><line x1="-9" y1="2" x2="9" y2="2" stroke="#FF6B00" stroke-width="2" stroke-linecap="round"/><line x1="0" y1="-2" x2="0" y2="7" stroke="#FF6B00" stroke-width="2" stroke-linecap="round"/><path d="M-8 2 Q0 -6 8 2" stroke="#FF6B00" stroke-width="1.8" fill="none" stroke-linecap="round"/><ellipse cx="0" cy="-5" rx="5" ry="4" fill="#f5f0e8" stroke="#555" stroke-width="0.8"/><ellipse cx="0" cy="-13" rx="9" ry="8" fill="#f5f0e8" stroke="#555" stroke-width="1"/><ellipse cx="-4" cy="-14" rx="4" ry="5" transform="rotate(-10 -4 -14)" fill="#8B5E3C"/><path d="M-7 -17 Q-12 -14 -10 -8 Q-7 -10 -6 -14 Z" fill="#8B5E3C" stroke="#555" stroke-width="0.7"/><path d="M7 -17 Q12 -14 10 -8 Q7 -10 6 -14 Z" fill="#f5f0e8" stroke="#555" stroke-width="0.7"/><ellipse cx="2" cy="-10" rx="5" ry="4" transform="rotate(5 2 -10)" fill="#f5f0e8" stroke="#555" stroke-width="0.8"/><ellipse cx="3" cy="-11" rx="3" ry="2.5" fill="#222"/><circle cx="2" cy="-12" r="0.8" fill="rgba(255,255,255,0.4)"/><circle cx="-3" cy="-15" r="2.5" fill="#222"/><circle cx="5" cy="-15" r="2.5" fill="#222"/><circle cx="-2" cy="-16" r="0.9" fill="white"/><circle cx="6" cy="-16" r="0.9" fill="white"/><path d="M0 -8 Q2 -6 4 -8" stroke="#555" stroke-width="0.8" fill="none"/></svg></div><p>아직 기록이 없어요!</p></div>';
+}
+
+function renderHistory() {
+  const q=(g('search-q')).toLowerCase();
+  const filtered=entries.filter(e=>!q||(e.autoId+e.k9+e.handler+e.location).toLowerCase().includes(q));
+  const el=document.getElementById('history-list');
+  el.innerHTML=filtered.length?filtered.map(logItemHTML).join(''):'<div class="empty"><div class="empty-icon">🔍</div><p>검색 결과가 없습니다.</p></div>';
+}
+
+const typeLabel={unit:'Team',indiv:'Individual',demo:'Demo',test:'Test'};
+const blindLabel={known:'Known',blind:'Blind',dbl:'Double Blind'};
+
+function logItemHTML(e) {
+  const metB=e.met==='yes'?'<span class="badge b-green">달성 ✓</span>':e.met==='no'?'<span class="badge b-red">미달성</span>':'';
+  const typeB=e.type?`<span class="badge b-blue">${typeLabel[e.type]||e.type}</span>`:'';
+  return `<div class="log-item" onclick="showDetail(${e.id})">
+    <div class="log-title">${e.autoId||e.k9||'미입력'}</div>
+    <div class="log-sub">${e.date||'-'} · ${e.location||'-'}<br>${e.k9||''} · ${e.handler||''} · ${e.age||'?'}min · ${e.length||'?'}m</div>
+    <div class="badges">${typeB}${metB}</div>
+  </div>`;
+}
+
+// ======== DETAIL ========
+function showDetail(id) {
+  const e=entries.find(x=>x.id===id); if(!e) return;
+  document.getElementById('detail-title').textContent=e.autoId||e.k9||'-';
+  document.getElementById('detail-sub').textContent=`${e.date||'-'} · ${e.location||'-'}`;
+  const yn=v=>v==='yes'?'Yes ✓':v==='no'?'No ✗':'-';
+
+  // 회차별 HTML 생성
+  const sessData = e.sessions || [e]; // 구버전 호환
+  const sessHtml = sessData.map((s,i) => {
+    const ytId = getYoutubeId(s.youtube||'');
+    const ytHtml = s.youtube ? (ytId ?
+      `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:var(--rs);margin-top:8px">
+        <iframe src="https://www.youtube.com/embed/${ytId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allowfullscreen></iframe>
+      </div>` :
+      `<a href="${s.youtube}" target="_blank" style="color:var(--blue)">${s.youtube}</a>`) : '';
+    return `
+    <div class="card" style="border-top:3px solid var(--blue)">
+      <div class="ct" style="color:var(--blue-dark)">${i+1}차 훈련</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+        ${row('Age',s.age?s.age+' min':'-')} ${row('Length',s.length?s.length+' m':'-')}
+        ${row('Turns',s.turns||'-')} ${row('Trail Time',s.trailtime?s.trailtime+' sec':'-')}
+        ${row('Scent Article',s.scent||'-')} ${row('Is It',blindLabel[s.blind]||'-')}
+        ${row('DoT',yn(s.dot)+(s.dotNote?' — '+s.dotNote:''))}
+      </div>
+      <div style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">
+        ${row('날씨',s.weather||'-')} ${row('온도',s.temp?s.temp+'°C':'-')}
+        ${row('습도',s.humidity?s.humidity+'%':'-')} ${row('Wind',(s.wind?s.wind+' m/s ':'')+( s.winddir||''))}
+        ${row('Indoors',s.indoor==='yes'?'실내':'실외')} ${s.env?row('환경',s.env):''}
+      </div>
+      ${s.mapImg?`<img src="${s.mapImg}" style="width:100%;border-radius:var(--rs);margin-top:8px">`:''}
+      ${ytHtml?`<div style="margin-top:8px">${ytHtml}</div>`:''}
+      <div style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">
+        ${row('Reward',s.reward||'-')} ${row('FTR',s.ftr||'-')}
+        ${row('목표 달성',yn(s.met)+(s.metNote?' — '+s.metNote:''))}
+        ${s.notes?`<div style="margin-top:6px;font-size:13px;line-height:1.7;background:var(--bg);padding:8px;border-radius:var(--rs)">${s.notes}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('detail-content').innerHTML=`
+    <div class="card">
+      <div class="ct">기본 정보</div>
+      ${row('Auto ID',e.autoId||'-')} ${row('견명',e.k9||'-')} ${row('핸들러',e.handler||'-')}
+      ${row('훈련 유형',typeLabel[e.type]||'-')} ${row('날짜',e.date||'-')}
+      ${row('시간',e.tod||'-')} ${row('장소',e.location||'-')}
+      ${e.address?row('상세주소',e.address):''}
+    </div>
+    ${e.objective?`<div class="card"><div class="ct">훈련 목표</div><p style="font-size:14px;line-height:1.7">${e.objective}</p></div>`:''}
+    ${sessHtml}
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button onclick="editEntry(${e.id})" style="flex:1;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:15px;font-weight:600;cursor:pointer">✏️ 수정</button>
+      <button onclick="deleteEntry(${e.id})" style="flex:1;padding:13px;background:var(--red-light);color:var(--red);border:1.5px solid var(--red);border-radius:var(--rs);font-size:15px;font-weight:600;cursor:pointer">🗑 삭제</button>
+    </div>
+    <button class="btn-pdf" onclick="exportSinglePDF(${e.id})" style="margin-bottom:16px">이 기록 PDF로 저장</button>
+    <div style="height:16px"></div>
+  `;
+  document.getElementById('detail-overlay').classList.add('open');
+  document.getElementById('detail-overlay').scrollTop=0;
+}
+
+function row(label,val) {
+  return `<div class="dr"><span class="dl">${label}</span><span class="dv">${val}</span></div>`;
+}
+
+function closeDetail() { document.getElementById('detail-overlay').classList.remove('open'); }
+
+// ======== 수정 ========
+function editEntry(id) {
+  const e = entries.find(x=>x.id===id); if(!e) return;
+  closeDetail();
+
+  // 수정 모드 먼저 설정 (switchTab에서 initSessions 호출 방지)
+  window._editingId = id;
+
+  // 새 기록 탭으로 이동 (initSessions 없이)
+  switchTab('new');
+
+  // 회차 수만큼 폼 먼저 생성
+  const sessData = e.sessions || [e];
+  initSessions(); // 1차 생성
+  for (let i = 1; i < sessData.length; i++) {
+    if (sessions.length < sessData.length) addSession();
+  }
+
+  // 충분한 딜레이 후 데이터 채우기 (DOM 렌더링 완료 대기)
+  setTimeout(() => {
+    // ── 기본 정보 ──
+    document.getElementById('f-k9').value = e.k9||'';
+    document.getElementById('f-handler').value = e.handler||'';
+    document.getElementById('f-date').value = e.date||'';
+    document.getElementById('f-tod').value = e.tod||'';
+    document.getElementById('f-location').value = e.location||'';
+    if(document.getElementById('f-address')) document.getElementById('f-address').value = e.address||'';
+    document.getElementById('f-objective').value = e.objective||'';
+
+    // 훈련 유형 버튼
+    selState.type = e.type||'';
+    document.querySelectorAll('#type-group .bg-btn').forEach(b => {
+      const val = Object.keys(typeLabel).find(k=>typeLabel[k]===b.textContent);
+      b.classList.toggle('sel', val===e.type);
+    });
+
+    // Auto ID 배지
+    const badge = document.getElementById('auto-id-badge');
+    badge.className = 'id-badge';
+    badge.textContent = e.autoId||'';
+
+    // ── 각 회차 데이터 채우기 ──
+    sessData.forEach((s, i) => {
+      const sid = `s${i}`;
+
+      const setF = (field, val) => {
+        const el = document.getElementById(`${sid}-${field}`);
+        if (el) el.value = val||'';
+      };
+      setF('age', s.age);
+      setF('length', s.length);
+      setF('turns', s.turns);
+      setF('scent', s.scent);
+      setF('trailtime', s.trailtime);
+      setF('weather', s.weather);
+      setF('temp', s.temp);
+      setF('humidity', s.humidity);
+      setF('wind', s.wind);
+      setF('winddir', s.winddir);
+      setF('env', s.env);
+      setF('youtube', s.youtube);
+      setF('reward', s.reward);
+      setF('ftr', s.ftr);
+      setF('notes', s.notes);
+      setF('dot-note', s.dotNote);
+      setF('met-note', s.metNote);
+
+      // Is It 버튼
+      if (!sessions[i]) return;
+      sessions[i].state = sessions[i].state || {};
+      sessions[i].state.blind = s.blind||'';
+      const blindGrp = document.getElementById(`${sid}-blind-group`);
+      if (blindGrp) blindGrp.querySelectorAll('.bg-btn').forEach(b => {
+        const val = Object.keys(blindLabel).find(k=>blindLabel[k]===b.textContent);
+        b.classList.toggle('sel', val===s.blind);
+      });
+
+      // YN 상태
+      if (s.dot) setSessionYN(i, 'dot', s.dot);
+      if (s.met) setSessionYN(i, 'met', s.met);
+      if (s.indoor) setSessionYN(i, 'indoor', s.indoor);
+    });
+
+    // 1차 탭으로 이동
+    switchSession(0);
+
+    // 수정 모드 버튼 표시
+    document.getElementById('save-btn').textContent = '✏️ 수정 저장하기';
+    document.getElementById('save-btn').style.background = 'var(--amber)';
+
+    showToast('수정 모드 — 내용을 변경 후 저장하세요 ✏️');
+  }, 400);
+}
+
+function deleteEntry(id) {
+  if (!confirm('이 기록을 삭제할까요?')) return;
+  entries = entries.filter(e => e.id !== id);
+  try { localStorage.setItem('dk_mt_v3', JSON.stringify(entries)); } catch(e) {}
+  closeDetail();
+  renderDashboard();
+  showToast('기록이 삭제되었습니다');
+}
+
+function getYoutubeId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+// ======== PDF ========
+function exportSinglePDF(id) {
+  const e=entries.find(x=>x.id===id); if(!e) return;
+  const yn=v=>v==='yes'?'Yes ✓':v==='no'?'No ✗':'-';
+  const sessData = e.sessions || [e];
+
+  const sessHtml = sessData.map((s,i) => `
+    <div style="margin-bottom:20px;border:1px solid #ddd;border-radius:6px;overflow:hidden">
+      <div style="background:#185FA5;color:#fff;padding:6px 12px;font-size:12px;font-weight:700">${i+1}차 훈련</div>
+      <div style="padding:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:10px">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <tr><td style="color:#888;padding:4px 6px;width:110px;border-bottom:0.5px solid #eee">Age of Trail</td><td style="padding:4px 6px;border-bottom:0.5px solid #eee">${s.age||'-'} min</td></tr>
+            <tr><td style="color:#888;padding:4px 6px;border-bottom:0.5px solid #eee">Length</td><td style="padding:4px 6px;border-bottom:0.5px solid #eee">${s.length||'-'} m</td></tr>
+            <tr><td style="color:#888;padding:4px 6px;border-bottom:0.5px solid #eee"># Turns</td><td style="padding:4px 6px;border-bottom:0.5px solid #eee">${s.turns||'-'}</td></tr>
+            <tr><td style="color:#888;padding:4px 6px;border-bottom:0.5px solid #eee">Trail Time</td><td style="padding:4px 6px;border-bottom:0.5px solid #eee">${s.trailtime||'-'} sec</td></tr>
+            <tr><td style="color:#888;padding:4px 6px;border-bottom:0.5px solid #eee">Scent Article</td><td style="padding:4px 6px;border-bottom:0.5px solid #eee">${s.scent||'-'}</td></tr>
+            <tr><td style="color:#888;padding:4px 6px;border-bottom:0.5px solid #eee">Is It</td><td style="padding:4px 6px;border-bottom:0.5px solid #eee">${blindLabel[s.blind]||'-'}</td></tr>
+            <tr><td style="color:#888;padding:4px 6px">DoT</td><td style="padding:4px 6px">${yn(s.dot)}${s.dotNote?' — '+s.dotNote:''}</td></tr>
+          </table>
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <tr><td style="color:#888;padding:4px 6px;width:80px;border-bottom:0.5px solid #eee">날씨</td><td style="padding:4px 6px;border-bottom:0.5px solid #eee">${s.weather||'-'}</td></tr>
+            <tr><td style="color:#888;padding:4px 6px;border-bottom:0.5px solid #eee">온도</td><td style="padding:4px 6px;border-bottom:0.5px solid #eee">${s.temp?s.temp+'°C':'-'}</td></tr>
+            <tr><td style="color:#888;padding:4px 6px;border-bottom:0.5px solid #eee">습도</td><td style="padding:4px 6px;border-bottom:0.5px solid #eee">${s.humidity?s.humidity+'%':'-'}</td></tr>
+            <tr><td style="color:#888;padding:4px 6px;border-bottom:0.5px solid #eee">풍속</td><td style="padding:4px 6px;border-bottom:0.5px solid #eee">${s.wind?s.wind+' m/s '+(s.winddir||''):'-'}</td></tr>
+            <tr><td style="color:#888;padding:4px 6px;border-bottom:0.5px solid #eee">Indoors</td><td style="padding:4px 6px;border-bottom:0.5px solid #eee">${s.indoor==='yes'?'실내':'실외'}</td></tr>
+            <tr><td style="color:#888;padding:4px 6px;border-bottom:0.5px solid #eee">Reward</td><td style="padding:4px 6px;border-bottom:0.5px solid #eee">${s.reward||'-'}</td></tr>
+            <tr><td style="color:#888;padding:4px 6px;border-bottom:0.5px solid #eee">FTR</td><td style="padding:4px 6px;border-bottom:0.5px solid #eee">${s.ftr||'-'}</td></tr>
+            <tr><td style="color:#888;padding:4px 6px">목표달성</td><td style="padding:4px 6px">${yn(s.met)}${s.metNote?' — '+s.metNote:''}</td></tr>
+          </table>
+        </div>
+        ${s.env?`<div style="font-size:12px;color:#555;background:#f9f9f9;padding:6px 8px;border-radius:4px;margin-bottom:8px">환경: ${s.env}</div>`:''}
+        ${s.mapImg?`<img src="${s.mapImg}" style="width:100%;border-radius:4px;margin-bottom:8px">`:''}
+        ${s.notes?`<div style="background:#fffbf0;border:0.5px solid #e0d8c0;border-radius:4px;padding:8px 10px;font-size:12px;line-height:1.7"><strong>복기 메모:</strong><br>${s.notes}</div>`:''}
+      </div>
+    </div>`).join('');
+
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+  <title>MT Log - ${e.autoId||e.k9}</title>
+  <style>
+    body{font-family:Arial,sans-serif;padding:1.5rem;max-width:900px;margin:0 auto;font-size:13px;color:#222}
+    .hdr{border-bottom:3px solid #0C447C;padding-bottom:10px;margin-bottom:16px}
+    .hdr h1{font-size:18px;font-weight:700;color:#0C447C;margin:0}
+    .hdr p{font-size:12px;color:#666;margin-top:3px}
+    .id-badge{display:inline-block;background:#E6F1FB;color:#0C447C;font-size:13px;font-weight:700;padding:3px 12px;border-radius:999px;margin-top:6px}
+    .sec{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 6px;border-top:1px solid #eee;padding-top:10px}
+    .notes-box{background:#fffbf0;border:0.5px solid #e0d8c0;border-radius:4px;padding:10px 12px;font-size:13px;line-height:1.7;margin-top:4px}
+    .btn{background:#0C447C;color:#fff;border:none;padding:8px 18px;border-radius:5px;cursor:pointer;font-size:13px;margin-bottom:16px;font-weight:600}
+    .footer{margin-top:20px;padding-top:10px;border-top:1px solid #eee;display:flex;justify-content:space-between;font-size:11px;color:#aaa}
+    @media print{.btn{display:none}}
+  </style></head><body>
+  <button class="btn" onclick="window.print()">🖨 인쇄 / PDF 저장</button>
+  <div class="hdr">
+    <h1>Mantrailing Training Log</h1>
+    <p>개별 출동 기록 · 출력일: ${new Date().toLocaleDateString('ko-KR')}</p>
+    <div class="id-badge">${e.autoId||e.k9||'-'}</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <tr style="background:#f5f5f5"><td colspan="2" style="padding:6px 8px;font-weight:700;font-size:11px;color:#185FA5">기본 정보</td></tr>
+      <tr><td style="color:#888;padding:4px 8px;width:100px;border-bottom:0.5px solid #eee">Auto ID</td><td style="padding:4px 8px;border-bottom:0.5px solid #eee;font-weight:700">${e.autoId||'-'}</td></tr>
+      <tr><td style="color:#888;padding:4px 8px;border-bottom:0.5px solid #eee">견명</td><td style="padding:4px 8px;border-bottom:0.5px solid #eee">${e.k9||'-'}</td></tr>
+      <tr><td style="color:#888;padding:4px 8px;border-bottom:0.5px solid #eee">핸들러</td><td style="padding:4px 8px;border-bottom:0.5px solid #eee">${e.handler||'-'}</td></tr>
+      <tr><td style="color:#888;padding:4px 8px;border-bottom:0.5px solid #eee">훈련 유형</td><td style="padding:4px 8px;border-bottom:0.5px solid #eee">${typeLabel[e.type]||'-'}</td></tr>
+      <tr><td style="color:#888;padding:4px 8px;border-bottom:0.5px solid #eee">날짜</td><td style="padding:4px 8px;border-bottom:0.5px solid #eee">${e.date||'-'}</td></tr>
+      <tr><td style="color:#888;padding:4px 8px;border-bottom:0.5px solid #eee">시간</td><td style="padding:4px 8px;border-bottom:0.5px solid #eee">${e.tod||'-'}</td></tr>
+      <tr><td style="color:#888;padding:4px 8px;border-bottom:0.5px solid #eee">장소</td><td style="padding:4px 8px;border-bottom:0.5px solid #eee">${e.location||'-'}</td></tr>
+      ${e.address?`<tr><td style="color:#888;padding:4px 8px">상세주소</td><td style="padding:4px 8px">${e.address}</td></tr>`:''}
+    </table>
+    ${e.objective?`<div style="background:#f0f7ff;border:1px solid #b5d4f4;border-radius:6px;padding:12px">
+      <div style="font-size:11px;font-weight:700;color:#185FA5;margin-bottom:6px">훈련 목표</div>
+      <div style="font-size:13px;line-height:1.7">${e.objective}</div>
+    </div>`:'<div></div>'}
+  </div>
+
+  <div style="font-size:11px;font-weight:700;color:#185FA5;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">회차별 훈련 기록 (총 ${sessData.length}회차)</div>
+  ${sessHtml}
+
+  <div class="footer">
+    <span>Mantrailing Training Log · ${e.autoId||e.k9||'-'} · 총 ${sessData.length}회차</span>
+    <span>${new Date().toLocaleDateString('ko-KR')} 출력</span>
+  </div>
+  </body></html>`);
+  win.document.close();
+}
+
+function exportPDF() {
+  if(!entries.length){showToast('저장된 기록이 없습니다');return;}
+  const yn=v=>v==='yes'?'Yes':v==='no'?'No':'-';
+  const rows=entries.map(e=>{
+    const sessData = e.sessions||[e];
+    const firstSess = sessData[0]||{};
+    return `<tr>
+      <td>${e.autoId||'-'}</td><td>${e.date||'-'}</td><td>${e.k9||'-'}</td><td>${e.handler||'-'}</td>
+      <td>${typeLabel[e.type]||'-'}</td><td>${e.location||'-'}</td>
+      <td>${sessData.length}회차</td>
+      <td>${firstSess.age||'-'}min</td><td>${firstSess.length||'-'}m</td>
+      <td>${firstSess.weather||'-'} ${firstSess.temp?firstSess.temp+'°C':''}</td>
+      <td>${yn(firstSess.dot)}</td><td>${yn(firstSess.met)}</td>
+      <td style="font-size:10px;max-width:150px">${firstSess.notes||'-'}</td>
+    </tr>`;
+  }).join('');
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mantrailing Training Log 전체</title>
+  <style>body{font-family:Arial,sans-serif;padding:1.5rem;font-size:11px;color:#222}
+  h1{font-size:16px;margin-bottom:2px}h2{font-size:11px;color:#666;margin-bottom:12px}
+  .btn{background:#185FA5;color:#fff;border:none;padding:7px 14px;border-radius:5px;cursor:pointer;font-size:12px;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse}th{background:#185FA5;color:#fff;padding:6px 8px;font-size:11px;text-align:left}
+  td{padding:5px 7px;border-bottom:0.5px solid #ddd;vertical-align:top}tr:nth-child(even){background:#f8f8f8}
+  @media print{.btn{display:none}}</style></head><body>
+  <button class="btn" onclick="window.print()">🖨 인쇄 / PDF 저장</button>
+  <h1>Mantrailing Training Log</h1>
+  <h2>총 ${entries.length}개 출동 기록 · ${new Date().toLocaleDateString('ko-KR')}</h2>
+  <table><thead><tr>
+    <th>ID</th><th>날짜</th><th>견명</th><th>핸들러</th><th>유형</th><th>장소</th>
+    <th>회차</th><th>Trail Age</th><th>Length</th><th>날씨/온도</th><th>DoT</th><th>달성</th><th>1차 메모</th>
+  </tr></thead>
+  <tbody>${rows}</tbody></table></body></html>`);
+  win.document.close();
+}
+
+function exportCSV() {
+  if(!entries.length){showToast('저장된 기록이 없습니다');return;}
+  const yn=v=>v==='yes'?'Yes':v==='no'?'No':'';
+  const esc=v=>'"'+(String(v||'').replace(/"/g,'""'))+'"';
+
+  let csv = '\uFEFF'; // BOM for Excel Korean
+  // 헤더
+  csv += ['ID','날짜','견명','핸들러','유형','장소','상세주소','훈련목표','회차수',
+    '1차_Age(min)','1차_Length(m)','1차_Turns','1차_Scent','1차_TrailTime(sec)',
+    '1차_IsIt','1차_DoT','1차_날씨','1차_온도(°C)','1차_습도(%)','1차_풍속(m/s)','1차_풍향',
+    '1차_Reward','1차_FTR','1차_목표달성','1차_메모'].map(esc).join(',') + '\n';
+
+  entries.forEach(e => {
+    const sessData = e.sessions||[e];
+    const s = sessData[0]||{};
+    const st = s.state||{};
+    csv += [
+      e.autoId, e.date, e.k9, e.handler,
+      typeLabel[e.type]||'', e.location, e.address, e.objective,
+      sessData.length,
+      s.age, s.length, s.turns, s.scent, s.trailtime,
+      blindLabel[s.blind]||'', yn(s.dot),
+      s.weather, s.temp, s.humidity, s.wind, s.winddir,
+      s.reward, s.ftr, yn(s.met), s.notes
+    ].map(esc).join(',') + '\n';
+
+    // 2차 이상 있으면 추가 행
+    sessData.slice(1).forEach((ss, i) => {
+      csv += [
+        e.autoId+`_${i+2}차`, e.date, e.k9, e.handler,
+        '', '', '', '', '',
+        ss.age, ss.length, ss.turns, ss.scent, ss.trailtime,
+        blindLabel[ss.blind]||'', yn(ss.dot),
+        ss.weather, ss.temp, ss.humidity, ss.wind, ss.winddir,
+        ss.reward, ss.ftr, yn(ss.met), ss.notes
+      ].map(esc).join(',') + '\n';
+    });
+  });
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mantrailing_log_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV 파일이 다운로드됐어요!');
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.opacity='1';
+  setTimeout(()=>t.style.opacity='0',2500);
+}
+
+// ======== 개인 설정 ========
+function selectLangSetup(lang) {
+  // 버튼 UI 업데이트
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.style.borderColor = 'var(--border)';
+    b.style.background = 'var(--bg)';
+    b.style.color = 'var(--text)';
+    b.style.fontWeight = '400';
+  });
+  const btn = document.getElementById(`lang-${lang}`);
+  if (btn) {
+    btn.style.borderColor = 'var(--blue)';
+    btn.style.background = 'var(--blue-light)';
+    btn.style.color = 'var(--blue-dark)';
+    btn.style.fontWeight = '600';
+  }
+  // 설정 화면 언어 즉시 반영
+  const t = LANGS[lang] || LANGS.ko;
+  const sub = document.getElementById('setup-subtitle');
+  if (sub) sub.textContent = t.setupTitle;
+  const myinfo = document.getElementById('setup-myinfo-label');
+  if (myinfo) myinfo.textContent = t.myInfo;
+  const nameL = document.getElementById('setup-name-label');
+  if (nameL) nameL.textContent = t.nameLabel + ' *';
+  const k9L = document.getElementById('setup-k9-label');
+  if (k9L) k9L.textContent = t.k9Label;
+  const startB = document.getElementById('setup-start-btn');
+  if (startB) startB.textContent = t.startBtn;
+  const keepB = document.getElementById('setup-keep-btn');
+  if (keepB) keepB.textContent = t.keepSettings;
+  currentLang = lang;
+}
+
+function openSetup() {
+  const overlay = document.getElementById('setup-overlay');
+  overlay.style.display = 'block';
+  if (userProfile.name) {
+    document.getElementById('setup-name').value = userProfile.name || '';
+    document.getElementById('setup-k9').value = userProfile.k9 || '';
+    document.getElementById('setup-existing').style.display = 'block';
+  }
+  // 현재 언어 선택 표시
+  selectLangSetup(currentLang);
+}
+
+function closeSetup() {
+  document.getElementById('setup-overlay').style.display = 'none';
+}
+
+function saveSetup() {
+  const name = document.getElementById('setup-name').value.trim();
+  if (!name) { showToast(T.nameRequired); return; }
+  const k9 = document.getElementById('setup-k9').value.trim();
+  userProfile = { name, k9, lang: currentLang };
+  try { localStorage.setItem('mt_profile', JSON.stringify(userProfile)); } catch(e) {}
+  try { localStorage.setItem('mt_lang', currentLang); } catch(e) {}
+  T = LANGS[currentLang] || LANGS.ko;
+  updateHeader();
+  const handlerEl = document.getElementById('f-handler');
+  if (handlerEl && !handlerEl.value) handlerEl.value = name;
+  closeSetup();
+  applyLang();
+  showToast(T.settingsSaved);
+}
+
+function updateHeader() {
+  const el = document.getElementById('hdr-user-name');
+  if (el && userProfile.name) {
+    el.textContent = `${userProfile.name}${userProfile.k9?' · '+userProfile.k9:''} · ${T.appSub}`;
+  } else if (el) {
+    el.textContent = T.appSub;
+  }
+}
+
+// ======== 사용법 안내 ========
+function openHelp() {
+  document.getElementById('help-overlay').style.display = 'block';
+  document.getElementById('help-title').textContent = T.helpTitle || '❓ 사용법 안내';
+  const step = (n,txt) => `<div style="display:flex;gap:10px;align-items:flex-start"><div style="min-width:24px;height:24px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${n}</div><div style="font-size:13px;line-height:1.6">${txt}</div></div>`;
+  document.getElementById('help-content').innerHTML = `
+    <div style="background:var(--blue-light);border-radius:var(--r);padding:16px;margin-bottom:14px;border-left:4px solid var(--blue)">
+      <div style="font-size:14px;font-weight:700;color:var(--blue-dark);margin-bottom:6px">${T.helpAbout}</div>
+      <div style="font-size:13px;line-height:1.7;color:var(--text)">${T.helpAboutDesc}</div>
+    </div>
+    <div style="background:var(--surface);border-radius:var(--r);padding:16px;margin-bottom:10px;box-shadow:var(--shadow)">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">${T.helpSteps}</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${step(1,T.helpStep1)}${step(2,T.helpStep2)}${step(3,T.helpStep3)}
+        ${step(4,T.helpStep4)}${step(5,T.helpStep5)}${step(6,T.helpStep6)}
+      </div>
+    </div>
+    <div style="background:var(--surface);border-radius:var(--r);padding:16px;margin-bottom:10px;box-shadow:var(--shadow)">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">${T.helpMap}</div>
+      <div style="font-size:13px;line-height:1.8;color:var(--text)">${T.helpMapDesc}</div>
+    </div>
+    <div style="background:var(--surface);border-radius:var(--r);padding:16px;margin-bottom:10px;box-shadow:var(--shadow)">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">${T.helpStorage}</div>
+      <div style="background:#FFF8E1;border-radius:var(--rs);padding:12px;border-left:4px solid var(--amber);margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:4px">${T.helpStorageWarn}</div>
+        <div style="font-size:12px;line-height:1.8;color:var(--text)">${T.helpStorageWarnDesc}</div>
+      </div>
+      <div style="font-size:13px;line-height:2;color:var(--text)">${T.helpStorageList}</div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:6px">${T.helpStorageSolution}</div>
+        <div style="font-size:12px;line-height:1.9;color:var(--text)">${T.helpStorageSolutionDesc}</div>
+      </div>
+    </div>
+    <div style="background:var(--amber-light);border-radius:var(--r);padding:16px;margin-bottom:10px;border-left:4px solid var(--amber)">
+      <div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:6px">${T.helpTips}</div>
+      <div style="font-size:13px;line-height:1.7">${T.helpTipsDesc}</div>
+    </div>
+    <div style="text-align:center;padding:16px;font-size:12px;color:var(--muted)">
+      <div style="font-weight:600;color:var(--blue-dark);margin-bottom:4px">Mantrailing Training Log</div>
+      Made by <strong>DK Shin</strong><br>shindanjang@naver.com<br>
+      <span style="font-size:11px">KKCRD (Korean Kennel Club Rescue Dog)</span>
+    </div>`;
+}
+function closeHelp() { document.getElementById('help-overlay').style.display = 'none'; }
+
+// ======== Init
+document.getElementById('f-date').valueAsDate=new Date();
+T = LANGS[currentLang] || LANGS.ko;
+renderDashboard();
+initSessions();
+updateHeader();
+if (!userProfile.name) { setTimeout(openSetup, 300); }
+if (userProfile.name) {
+  const handlerEl = document.getElementById('f-handler');
+  if (handlerEl) handlerEl.value = userProfile.name;
+}
+</script>
+
+<!-- ================================================
+  📋 GOOGLE APPS SCRIPT 서버 코드
+  아래 코드를 Google Apps Script에 붙여넣으세요
+  =================================================
+
+function doPost(e) {
+  const data = JSON.parse(e.postData.contents);
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('훈련일지');
+
+  if (data.action === 'save') {
+    const d = data.data;
+    sheet.appendRow([
+      d.autoId, d.k9, d.handler, d.type, d.date, d.tod, d.location,
+      d.objective, d.age, d.length, d.turns, d.scent, d.trailtime,
+      d.blind, d.dot, d.dotNote, d.weather, d.temp, d.humidity,
+      d.wind, d.winddir, d.indoor, d.env,
+      d.youtube, d.notes, d.reward, d.ftr, d.met, d.metNote,
+      d.mapImg, new Date()
+    ]);
+    return ContentService.createTextOutput(JSON.stringify({ok:true}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  return ContentService.createTextOutput('{}');
+}
+
+function doGet(e) {
+  const sheet = SpreadsheetApp.getActiveSpr
