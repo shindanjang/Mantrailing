@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Privacy Policy — MantrailingLog by DK Shin</title>
+<style>
+:root {
+  --blue: #185FA5; --blue-dark: #0C447C; --blue-light: #E6F1FB;
+  --green: #1D9E75; --green-light: #EAF3DE;
+  --bg: #F4F6FA; --surface: #fff; --border: #DEE3EC;
+  --text: #1a1a2e; --muted: #6B7280;
+  --r: 12px; --rs: 8px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+
+/* 헤더 */
+.hdr { background: var(--blue-dark); color: #fff; padding: 20px 20px 16px; position: sticky; top: 0; z-index: 100; }
+.hdr-inner { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+.hdr-logo { font-size: 24px; }
+.hdr-title { font-size: 16px; font-weight: 700; }
+.hdr-sub { font-size: 11px; opacity: 0.7; margin-top: 1px; }
+
+/* 언어 선택 */
+.lang-bar { background: var(--blue); padding: 10px 20px; }
+.lang-inner { max-width: 720px; margin: 0 auto; display: flex; gap: 6px; flex-wrap: wrap; }
+.lang-btn { padding: 4px 12px; font-size: 12px; border: 1.5px solid rgba(255,255,255,0.3); border-radius: 999px; background: transparent; color: rgba(255,255,255,0.7); cursor: pointer; font-weight: 500; transition: all 0.15s; }
+.lang-btn.active { background: rgba(255,255,255,0.2); border-color: #fff; color: #fff; font-weight: 700; }
+
+/* 컨텐츠 */
+.container { max-width: 720px; margin: 0 auto; padding: 24px 20px 60px; }
+.hero { background: var(--surface); border-radius: var(--r); padding: 28px 24px; margin-bottom: 20px; box-shadow: var(--shadow); border-left: 5px solid var(--blue); }
+.hero h1 { font-size: 22px; font-weight: 800; color: var(--blue-dark); margin-bottom: 6px; }
+.hero p { font-size: 13px; color: var(--muted); }
+
+.section { background: var(--surface); border-radius: var(--r); padding: 22px 24px; margin-bottom: 12px; box-shadow: var(--shadow); }
+.section h2 { font-size: 15px; font-weight: 700; color: var(--blue-dark); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.section p { font-size: 14px; color: var(--text); margin-bottom: 8px; }
+.section ul { padding-left: 18px; }
+.section ul li { font-size: 14px; color: var(--text); margin-bottom: 5px; }
+.highlight { background: var(--blue-light); border-radius: var(--rs); padding: 12px 16px; margin-top: 10px; font-size: 13px; color: var(--blue-dark); font-weight: 600; }
+.green-box { background: var(--green-light); border-radius: var(--rs); padding: 12px 16px; margin-top: 10px; font-size: 13px; color: #0F6E56; font-weight: 600; }
+.footer { text-align: center; padding: 20px; font-size: 12px; color: var(--muted); }
+.footer a { color: var(--blue); text-decoration: none; }
+.back-btn { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px; padding: 8px 16px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; text-decoration: none; }
+.back-btn:hover { border-color: var(--blue); color: var(--blue); }
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="hdr">
+  <div class="hdr-inner">
+    <div class="hdr-logo">🐕</div>
+    <div>
+      <div class="hdr-title">MantrailingLog</div>
+      <div class="hdr-sub" id="hdr-sub">Privacy Policy · by DK Shin</div>
+    </div>
+  </div>
+</div>
+
+<!-- 언어 선택 -->
+<div class="lang-bar">
+  <div class="lang-inner">
+    <button class="lang-btn" onclick="setLang('ko')">🇰🇷 한국어</button>
+    <button class="lang-btn active" onclick="setLang('en')">🇺🇸 English</button>
+    <button class="lang-btn" onclick="setLang('de')">🇩🇪 Deutsch</button>
+    <button class="lang-btn" onclick="setLang('es')">🇪🇸 Español</button>
+    <button class="lang-btn" onclick="setLang('ja')">🇯🇵 日本語</button>
+    <button class="lang-btn" onclick="setLang('zh')">🇨🇳 中文</button>
+  </div>
+</div>
+
+<!-- 컨텐츠 -->
+<div class="container">
+  <a href="MantrailingLog.html" class="back-btn">← <span id="back-label">Back to App</span></a>
+  <div id="privacy-content"></div>
+  <div class="footer">
+    MantrailingLog · Made by <strong>DK Shin</strong> · shindanjang@naver.com<br>
+    KKCRD (Korean Kennel Club Rescue Dog) · <span id="footer-date"></span>
+  </div>
+</div>
+
+<script>
+const TEXTS = {
+  en: {
+    hdrSub: 'Privacy Policy · by DK Shin',
+    back: 'Back to App',
+    lastUpdated: 'Last updated: April 2026',
+    content: `
+      <div class="hero">
+        <h1>🔒 Privacy Policy</h1>
+        <p>MantrailingLog · by DK Shin · Effective April 2026</p>
+      </div>
+      <div class="section">
+        <h2>📋 Overview</h2>
+        <p>MantrailingLog ("the App") is a K9 search & rescue training log application developed by DK Shin. This Privacy Policy explains how we handle your data when you use the App.</p>
+        <div class="green-box">✅ We do not operate any servers. Your data is stored only in your own Google Drive.</div>
+      </div>
+      <div class="section">
+        <h2>🔐 Google Sign-In & Data Storage</h2>
+        <p>The App uses Google Sign-In (OAuth 2.0) for authentication. When you sign in:</p>
+        <ul>
+          <li>We access your <strong>name, email address, and profile picture</strong> to display your identity in the App.</li>
+          <li>Your training records are stored in your own <strong>Google Drive (appDataFolder)</strong> — a private, hidden folder accessible only by this App and you.</li>
+          <li>No other users can access your data.</li>
+          <li>The developer (DK Shin) cannot access your data.</li>
+        </ul>
+        <div class="highlight">📁 Your data lives in YOUR Google Drive. We never see it.</div>
+      </div>
+      <div class="section">
+        <h2>📊 What Data We Collect</h2>
+        <ul>
+          <li>Google account name and email (for display only)</li>
+          <li>Profile picture URL (displayed in app header)</li>
+          <li>Training records you enter (K9 name, date, location, trail data, notes, map drawings)</li>
+        </ul>
+        <p>All training data is stored locally on your device and synced to your own Google Drive. We do not collect, transmit, or store any data on external servers.</p>
+      </div>
+      <div class="section">
+        <h2>🚫 What We Do NOT Do</h2>
+        <ul>
+          <li>We do NOT sell your data to third parties</li>
+          <li>We do NOT use your data for advertising</li>
+          <li>We do NOT store your data on our servers</li>
+          <li>We do NOT share your data with anyone</li>
+          <li>We do NOT track your location</li>
+        </ul>
+      </div>
+      <div class="section">
+        <h2>🗑️ Deleting Your Data</h2>
+        <p>You can delete all your data at any time:</p>
+        <ul>
+          <li><strong>In the App:</strong> Delete individual records from the Records list</li>
+          <li><strong>Google Drive:</strong> Go to drive.google.com → Settings → Manage Apps → MantrailingLog → Delete hidden app data</li>
+          <li><strong>Revoke access:</strong> Go to myaccount.google.com → Security → Third-party apps → MantrailingLog → Remove</li>
+        </ul>
+      </div>
+      <div class="section">
+        <h2>👶 Children's Privacy</h2>
+        <p>The App is not directed at children under 13. We do not knowingly collect data from children under 13.</p>
+      </div>
+      <div class="section">
+        <h2>📬 Contact</h2>
+        <p>If you have any questions about this Privacy Policy, please contact:</p>
+        <p><strong>DK Shin</strong> · shindanjang@naver.com<br>KKCRD (Korean Kennel Club Rescue Dog)</p>
+      </div>`
+  },
+  ko: {
+    hdrSub: '개인정보처리방침 · by DK Shin',
+    back: '앱으로 돌아가기',
+    lastUpdated: '최종 업데이트: 2026년 4월',
+    content: `
+      <div class="hero">
+        <h1>🔒 개인정보처리방침</h1>
+        <p>MantrailingLog · DK Shin 제작 · 2026년 4월부터 적용</p>
+      </div>
+      <div class="section">
+        <h2>📋 개요</h2>
+        <p>MantrailingLog(이하 "앱")는 DK Shin이 개발한 인명구조견(K9) 맨트레일링 훈련 기록 앱입니다. 본 개인정보처리방침은 앱 사용 시 데이터를 어떻게 처리하는지 설명합니다.</p>
+        <div class="green-box">✅ 별도 서버를 운영하지 않습니다. 모든 데이터는 본인의 Google Drive에만 저장됩니다.</div>
+      </div>
+      <div class="section">
+        <h2>🔐 구글 로그인 및 데이터 저장</h2>
+        <p>앱은 구글 로그인(OAuth 2.0)을 인증에 사용합니다. 로그인 시:</p>
+        <ul>
+          <li><strong>이름, 이메일 주소, 프로필 사진</strong>에 접근하여 앱 내 표시에 사용합니다.</li>
+          <li>훈련 기록은 본인의 <strong>Google Drive (appDataFolder)</strong>에 저장됩니다. 이 폴더는 앱과 본인만 접근 가능한 숨김 폴더입니다.</li>
+          <li>다른 사용자는 본인의 데이터에 접근할 수 없습니다.</li>
+          <li>개발자(DK Shin)도 본인의 데이터에 접근할 수 없습니다.</li>
+        </ul>
+        <div class="highlight">📁 데이터는 본인의 Google Drive에 저장됩니다. 개발자는 볼 수 없습니다.</div>
+      </div>
+      <div class="section">
+        <h2>📊 수집하는 정보</h2>
+        <ul>
+          <li>구글 계정 이름 및 이메일 (표시 목적)</li>
+          <li>프로필 사진 URL (앱 헤더 표시)</li>
+          <li>입력한 훈련 기록 (견명, 날짜, 장소, 트레일 데이터, 메모, 지도 그림)</li>
+        </ul>
+        <p>모든 훈련 데이터는 기기에 로컬 저장되고 본인의 Google Drive에 동기화됩니다. 외부 서버에는 데이터를 수집·전송·저장하지 않습니다.</p>
+      </div>
+      <div class="section">
+        <h2>🚫 하지 않는 것</h2>
+        <ul>
+          <li>제3자에게 데이터를 판매하지 않습니다</li>
+          <li>광고 목적으로 데이터를 사용하지 않습니다</li>
+          <li>서버에 데이터를 저장하지 않습니다</li>
+          <li>누구와도 데이터를 공유하지 않습니다</li>
+          <li>위치를 추적하지 않습니다</li>
+        </ul>
+      </div>
+      <div class="section">
+        <h2>🗑️ 데이터 삭제</h2>
+        <p>언제든지 모든 데이터를 삭제할 수 있습니다:</p>
+        <ul>
+          <li><strong>앱 내:</strong> 기록 목록에서 개별 기록 삭제</li>
+          <li><strong>Google Drive:</strong> drive.google.com → 설정 → 앱 관리 → MantrailingLog → 숨겨진 앱 데이터 삭제</li>
+          <li><strong>접근 권한 취소:</strong> myaccount.google.com → 보안 → 타사 앱 → MantrailingLog → 삭제</li>
+        </ul>
+      </div>
+      <div class="section">
+        <h2>👶 아동 개인정보 보호</h2>
+        <p>본 앱은 만 14세 미만 아동을 대상으로 하지 않습니다. 만 14세 미만 아동의 데이터를 의도적으로 수집하지 않습니다.</p>
+      </div>
+      <div class="section">
+        <h2>📬 문의</h2>
+        <p>개인정보처리방침에 관한 문의:</p>
+        <p><strong>DK Shin</strong> · shindanjang@naver.com<br>한국인명구조견협회 (KKCRD)</p>
+      </div>`
+  },
+  de: {
+    hdrSub: 'Datenschutzerklärung · by DK Shin',
+    back: 'Zurück zur App',
+    content: `
+      <div class="hero"><h1>🔒 Datenschutzerklärung</h1><p>MantrailingLog · DK Shin · Stand April 2026</p></div>
+      <div class="section"><h2>📋 Überblick</h2><p>MantrailingLog ist eine K9-Mantrailing-Trainingsprotokoll-App von DK Shin.</p><div class="green-box">✅ Kein eigener Server. Alle Daten werden nur in Ihrem Google Drive gespeichert.</div></div>
+      <div class="section"><h2>🔐 Google-Anmeldung & Datenspeicherung</h2><ul><li>Name, E-Mail-Adresse und Profilbild werden zur Anzeige verwendet.</li><li>Trainingsaufzeichnungen werden in Ihrem <strong>Google Drive (appDataFolder)</strong> gespeichert.</li><li>Kein anderer Nutzer oder der Entwickler kann auf Ihre Daten zugreifen.</li></ul><div class="highlight">📁 Ihre Daten liegen in IHREM Google Drive. Wir sehen sie nie.</div></div>
+      <div class="section"><h2>🚫 Was wir NICHT tun</h2><ul><li>Keine Weitergabe an Dritte</li><li>Keine Werbenutzung</li><li>Keine Serverspeicherung</li><li>Kein Standort-Tracking</li></ul></div>
+      <div class="section"><h2>📬 Kontakt</h2><p><strong>DK Shin</strong> · shindanjang@naver.com · KKCRD</p></div>`
+  },
+  es: {
+    hdrSub: 'Política de Privacidad · by DK Shin',
+    back: 'Volver a la App',
+    content: `
+      <div class="hero"><h1>🔒 Política de Privacidad</h1><p>MantrailingLog · DK Shin · Abril 2026</p></div>
+      <div class="section"><h2>📋 Resumen</h2><p>MantrailingLog es una app de registro de entrenamiento K9 desarrollada por DK Shin.</p><div class="green-box">✅ No operamos servidores. Tus datos se guardan solo en tu Google Drive.</div></div>
+      <div class="section"><h2>🔐 Google Login y Almacenamiento</h2><ul><li>Accedemos a tu nombre, correo y foto de perfil para mostrarlos en la app.</li><li>Tus registros se guardan en tu <strong>Google Drive (appDataFolder)</strong>, una carpeta privada.</li><li>Ni otros usuarios ni el desarrollador pueden acceder a tus datos.</li></ul><div class="highlight">📁 Tus datos están en TU Google Drive. Nunca los vemos.</div></div>
+      <div class="section"><h2>🚫 Lo que NO hacemos</h2><ul><li>No vendemos datos a terceros</li><li>No usamos datos para publicidad</li><li>No almacenamos datos en servidores</li><li>No rastreamos tu ubicación</li></ul></div>
+      <div class="section"><h2>📬 Contacto</h2><p><strong>DK Shin</strong> · shindanjang@naver.com · KKCRD</p></div>`
+  },
+  ja: {
+    hdrSub: 'プライバシーポリシー · by DK Shin',
+    back: 'アプリに戻る',
+    content: `
+      <div class="hero"><h1>🔒 プライバシーポリシー</h1><p>MantrailingLog · DK Shin · 2026年4月施行</p></div>
+      <div class="section"><h2>📋 概要</h2><p>MantrailingLogはDK Shinが開発したK9マントレイリング訓練記録アプリです。</p><div class="green-box">✅ 独自サーバーは運営していません。すべてのデータはあなたのGoogle Driveにのみ保存されます。</div></div>
+      <div class="section"><h2>🔐 Googleログインとデータ保存</h2><ul><li>名前、メールアドレス、プロフィール写真をアプリ表示に使用します。</li><li>訓練記録はあなた自身の<strong>Google Drive (appDataFolder)</strong>に保存されます。</li><li>他のユーザーも開発者もあなたのデータにアクセスできません。</li></ul><div class="highlight">📁 データはあなたのGoogle Driveに保存されます。開発者は見ることができません。</div></div>
+      <div class="section"><h2>🚫 行わないこと</h2><ul><li>第三者へのデータ販売なし</li><li>広告目的のデータ使用なし</li><li>サーバーへのデータ保存なし</li><li>位置情報の追跡なし</li></ul></div>
+      <div class="section"><h2>📬 お問い合わせ</h2><p><strong>DK Shin</strong> · shindanjang@naver.com · KKCRD</p></div>`
+  },
+  zh: {
+    hdrSub: '隐私政策 · by DK Shin',
+    back: '返回应用',
+    content: `
+      <div class="hero"><h1>🔒 隐私政策</h1><p>MantrailingLog · DK Shin · 2026年4月起生效</p></div>
+      <div class="section"><h2>📋 概述</h2><p>MantrailingLog是由DK Shin开发的K9搜救训练记录应用。</p><div class="green-box">✅ 我们不运营任何服务器。您的数据仅存储在您自己的Google Drive中。</div></div>
+      <div class="section"><h2>🔐 Google登录与数据存储</h2><ul><li>我们访问您的姓名、电子邮件和头像用于应用内显示。</li><li>训练记录存储在您自己的<strong>Google Drive（appDataFolder）</strong>中。</li><li>其他用户和开发者均无法访问您的数据。</li></ul><div class="highlight">📁 您的数据存储在您的Google Drive中。我们永远无法查看。</div></div>
+      <div class="section"><h2>🚫 我们不做的事</h2><ul><li>不向第三方出售数据</li><li>不将数据用于广告</li><li>不在服务器上存储数据</li><li>不追踪您的位置</li></ul></div>
+      <div class="section"><h2>📬 联系方式</h2><p><strong>DK Shin</strong> · shindanjang@naver.com · KKCRD</p></div>`
+  }
+};
+
+let currentLang = 'en';
+
+function setLang(lang) {
+  currentLang = lang;
+  // 버튼 스타일
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    if (b.textContent.includes(lang === 'ko' ? '한국어' : lang === 'en' ? 'English' : lang === 'de' ? 'Deutsch' : lang === 'es' ? 'Español' : lang === 'ja' ? '日本語' : '中文')) {
+      b.classList.add('active');
+    }
+  });
+  const t = TEXTS[lang] || TEXTS.en;
+  document.getElementById('hdr-sub').textContent = t.hdrSub;
+  document.getElementById('back-label').textContent = t.back;
+  document.getElementById('privacy-content').innerHTML = t.content;
+  document.documentElement.lang = lang;
+}
+
+// 브라우저 언어 자동 감지
+function detectLang() {
+  const bl = (navigator.language || 'en').substring(0, 2);
+  const supported = ['ko','en','de','es','ja','zh'];
+  return supported.includes(bl) ? bl : 'en';
+}
+
+// 초기화
+document.getElementById('footer-date').textContent = new Date().toLocaleDateString('en', {year:'numeric',month:'long'});
+setLang(detectLang());
+</script>
+</body>
+</html>
